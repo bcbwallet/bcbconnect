@@ -1,0 +1,122 @@
+@import '../../assets/css/var.styl';
+
+$defaultColor=rgb(155,155,155)
+$hoverColor=rgb(255,255,255)
+
+.network-tree
+    position: fixed;
+    top: 60px;
+    z-index: 999;
+    padding: 16px 8px 32px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 4px;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 2px 2px;
+    -moz-box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 2px 2px;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 2px 2px;
+
+    &.mode1
+        right: 4px;
+        left: 32px;
+
+    &.mode2
+        right: 8px;
+        width: 180px;
+
+    .network-title
+        padding-bottom: 8px;
+        font-size: 18px;
+        line-height: 24px;
+        color: $hoverColor;
+        text-align: center;
+        border-bottom: 1px solid #5d5d5d;
+
+    .network-list
+        padding: 8px 0;
+
+        .network-item
+            position: relative;
+
+            .network-name
+                display: block;
+                padding: 12px 0;
+                color: $defaultColor;
+                text-align: center;
+                cursor: pointer;
+
+                i
+                span
+                    display: inline-block;
+                    vertical-align: middle;
+
+                i
+                    width: 14px;
+                    height: 14px;
+                    border: 1px solid $defaultColor;
+                    border-radius: 100%;
+                    background-color: transparent;
+
+                span
+                    margin-left: 8px;
+                    font-size: 16px;
+                    line-height: 20px;
+                
+                &:hover
+                    color: $hoverColor;
+                    background-color: rgba(255, 255, 255, 0.05);
+                    border-radius: 4px;
+
+                    i
+                        border-color: $hoverColor;
+
+                &.active > i
+                    border-color: $hoverColor;
+                    background-color: $color0195FF;
+                
+                &.active > span
+                    color: $hoverColor;
+
+            .network-chains
+                position: absolute;
+                top: 6px;
+                left: -130px;
+                z-index: 1000;
+                padding: 8px 4px;
+                width: 120px;
+                background-color: rgba(0, 0, 0, 0.8);
+                border-radius: 4px;
+                -webkit-box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 2px 2px;
+                -moz-box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 2px 2px;
+                box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 2px 2px;
+
+                .network-chain
+                    display: block;
+                    height: 32px;
+                    font-size: 15px;
+                    line-height: 32px;
+                    color: $defaultColor;
+                    text-align: center;
+                    cursor: pointer;
+
+                    &:first-child
+                        padding: 4px 0 6px;
+                        heigth: auto;
+                        font-size: 16px;
+                        line-height: 22px;
+                        color: $hoverColor;
+                        text-align: center;
+                        border-bottom: 1px solid #5d5d5d;
+
+                    &:nth-child(2)
+                        margin-top: 6px;
+
+                    &:last-child
+                        margin-bottom: 4px;
+
+                    &:not(.first):hover
+                        color: $hoverColor;
+                        background-color: rgba(255, 255, 255, 0.05);
+                        border-radius: 4px;
+
+                    &.active
+                        font-weight: bold;
+                        color: $hoverColor;
