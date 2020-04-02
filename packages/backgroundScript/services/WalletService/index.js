@@ -6,6 +6,7 @@ import WalletProvider from './WalletProvider';
 import Account from './Account';
 
 import '@bcblink/lib/bcbjs';
+import { deepCopy } from '@bcblink/lib/common';
 import { getMainAddress, getChainAddress } from '@bcblink/lib/address';
 import extensionizer from 'extensionizer';
 
@@ -718,26 +719,33 @@ class Wallet extends EventEmitter {
             NodeService.init();
             await NodeService.selectChain({ network, chain });
 
-            let tokenSymbol;
+            let tokenSymbol, source;
             let walletProvider = false;
             if (WalletProvider.supports(network, chain)) {
                 walletProvider = new WalletProvider(network, chain);
                 tokenSymbol = walletProvider.getMainToken();
+                source = 'network';
             } else {
                 let nodeInfo = await NodeService.getNodeInfo(await NodeService.getSeedNodeUrl(network));
                 if (!nodeInfo || !nodeInfo.token || !nodeInfo.token.symbol) {
                     return Promise.reject('No token info');
                 }
                 tokenSymbol = nodeInfo.token.symbol;
+                if (NodeService.isPublicNetwork(network)) {
+                    source = 'network';
+                } else {
+                    source = 'user';
+                }
             }
 
+            this.reset();
             this.network = network;
             this.chain = chain;
             this.emit('setChain', { network, chain });
             this.walletProvider = walletProvider;
 
             if (!(tokenSymbol in this.assets)) {
-                await this.addAsset(tokenSymbol);
+                await this.addAsset(tokenSymbol, { source });
             }
             // select a token as default
             this.selectToken(tokenSymbol);
@@ -916,14 +924,15 @@ class Wallet extends EventEmitter {
         }
     }
 
-    async addAsset(symbol) {
-        logger.info('Add asset', symbol);
+    async addAsset(symbol, opts) {
+        logger.info('Add asset', symbol, opts);
 
         if (symbol in this.assets) {
             return Promise.reject(`${symbol} exists`);
         }
+        let source = (opts && typeof opts.source !== 'undefined') ? opts.source : 'user';
         let tokenAddress = await NodeService.getTokenAddressBySymbol(symbol);
-        this.assets[symbol] = { address: tokenAddress, enabled: true, source: 'user' };
+        this.assets[symbol] = { address: tokenAddress, enabled: true, source };
         this.saveNetworkAssets({ [this.network]: this.assets });
         return true;
     }
@@ -932,12 +941,11 @@ class Wallet extends EventEmitter {
     async getSelectedAccountAssets() {
         logger.info('Get selected account assets', this.assets);
 
-        let accountAssets = {};
+        const assets = this.assets;
         if (this.walletProvider) {
             let address = this.getChainAddress(this.selectedAccount);
-            accountAssets = await this.walletProvider.getAccountAssets(address);
+            let accountAssets = await this.walletProvider.getAccountAssets(address);
 
-            let assets = this.assets;
             // console.log('updated assets', accountAssets)
             // console.log('current assets', assets)
             Object.entries(accountAssets).forEach(([ key, value ]) => {
@@ -957,18 +965,17 @@ class Wallet extends EventEmitter {
                     assets[key].fiatValue = 0;
                 }
             });
-            this.assets = assets;
-            this.saveNetworkAssets({ [ this.network ]: this.assets });
+            this.saveNetworkAssets({ [ this.network ]: assets });
             this.assetsUpdated = new Date().getTime();
         }
 
-        let enabledAssets = {};
-        for (let key of Object.keys(this.assets)) {
-            if (defaultEnabledTokens.includes(key) && typeof this.assets[key].enabled === 'undefined') {
-                this.assets[key].enabled = true;
+        const enabledAssets = {};
+        for (let key of Object.keys(assets)) {
+            if (defaultEnabledTokens.includes(key) && typeof assets[key].enabled === 'undefined') {
+                assets[key].enabled = true;
             }
-            if (this.assets[key].enabled) {
-                enabledAssets[key] = this.assets[key];
+            if (assets[key].enabled) {
+                enabledAssets[key] = assets[key];
                 // if (key === this.selectedToken && typeof enabledAssets[key].balance === 'undefined') {
                 //     let result = await this.getSelectedAccountBalance(key);
                 //     enabledAssets[key].balance = result.balance;

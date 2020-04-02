@@ -3,13 +3,15 @@ import StorageService from '../StorageService';
 import randomUUID from 'uuid/v4';
 import axios from 'axios';
 
+import { deepCopy } from '@bcblink/lib/common';
+
 const logger = new Logger('NodeService');
 
-const defaultNetworks = {
+const publicNetworks = {
     'bcb': {
         name: 'Mainnet',
         chains: ['bcb'],
-        default: true,
+        public: true,
         urls: [
             'https://earth.bcbchain.io'
         ]
@@ -17,7 +19,7 @@ const defaultNetworks = {
     'bcbt': {
         name: 'Testnet',
         chains: ['bcbt'],
-        default: true,
+        public: true,
         urls: [
             'https://test-earth.bcbchain.io'
         ]
@@ -31,7 +33,6 @@ const NodeService = {
         this.chain = false;
 
         // nodes of current chain and all custom nodes
-        console.log('clear #1')
         this.nodes = {};
         this.selectedNode = false;
         this.updating = false;
@@ -58,7 +59,7 @@ const NodeService = {
         }
 
         const networks = StorageService.getNetworks();
-        this.networks = Object.keys(networks).length ? networks : defaultNetworks;
+        this.networks = Object.keys(networks).length ? networks : deepCopy(publicNetworks);
 
         let chainOpts = StorageService.getSelectedChain();
         // migrating from pre-2.0 version
@@ -85,7 +86,6 @@ const NodeService = {
                     nodes[nodeId].source = 'network';
                 }
             });
-            console.log('clear #2')
             this.nodes = nodes;
         }
 
@@ -305,10 +305,14 @@ const NodeService = {
     },
 
     getDefaultChain() {
-        let keys = Object.keys(defaultNetworks);
+        let keys = Object.keys(publicNetworks);
         let network = keys[0];
-        let chain = defaultNetworks[network].chains[0];
+        let chain = publicNetworks[network].chains[0];
         return { network, chain };
+    },
+
+    isPublicNetwork(network) {
+        return (network in publicNetworks);
     },
 
     async addNetwork(networkInfo) {
@@ -380,13 +384,13 @@ const NodeService = {
         logger.info('networks:', this.networks);
 
         if (!this.networks || !Object.keys(this.networks).length) {
-            this.networks = defaultNetworks;
+            this.networks = deepCopy(publicNetworks);
         }
 
         let networks = {};
         Object.entries(this.networks).forEach(([ networkId, network ]) => {
             let { name, chains } = network;
-            networks[networkId] = { name, chains, default: network.default };
+            networks[networkId] = { name, chains, default: network.public };
         });
         return networks;
     },
@@ -488,10 +492,10 @@ const NodeService = {
     },
 
     getDefaultNodeUrl(networkId) {
-        if (! networkId in defaultNetworks) {
+        if (!(networkId in publicNetworks)) {
             throw new Error(`No default node for ${networkId}`);
         }
-        return defaultNetworks[networkId].urls[0];
+        return publicNetworks[networkId].urls[0];
     },
 
     async getSeedNodeUrl(network) {
@@ -533,7 +537,6 @@ const NodeService = {
         if (url) {
             let nodeId = randomUUID();
             // nodes cleared
-            console.log('clear #3')
             this.nodes = {};
             this.nodes[nodeId] = {
                 url,

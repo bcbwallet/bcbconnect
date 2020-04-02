@@ -4,7 +4,7 @@ import StorageService from '../StorageService';
 
 const logger = new Logger('WalletProvider');
 
-const defaultWalletProviders = {
+const providedNetworks = {
     'bcb': {
         chainId: 'bcb',
         coinType: '0x1002',
@@ -27,9 +27,9 @@ class WalletProvider {
 
     constructor(network, chain) {
         logger.info('New WalletProvider', network, chain);
-        if (network in defaultWalletProviders) {
+        if (network in providedNetworks) {
             this.network = network;
-            this.provider = defaultWalletProviders[this.network];
+            this.provider = providedNetworks[this.network];
             this.chain = chain;
         } else {
             throw new Error(`Unsupported network ${network}`);
@@ -37,11 +37,11 @@ class WalletProvider {
     }
 
     static supports(network, chain) {
-        return (network in defaultWalletProviders);
+        return (network in providedNetworks);
     }
 
     getMainToken() {
-        return defaultWalletProviders[this.network].token;
+        return providedNetworks[this.network].token;
     }
 
     get isSideChain() {
