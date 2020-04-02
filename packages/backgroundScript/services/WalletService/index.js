@@ -17,6 +17,11 @@ import {
 
 const logger = new Logger('WalletService');
 
+const defaultEnabledTokens = [
+    'BCB',
+    'DC'
+];
+
 class Wallet extends EventEmitter {
     constructor() {
         super();
@@ -959,6 +964,9 @@ class Wallet extends EventEmitter {
 
         let enabledAssets = {};
         for (let key of Object.keys(this.assets)) {
+            if (defaultEnabledTokens.includes(key) && typeof this.assets[key].enabled === 'undefined') {
+                this.assets[key].enabled = true;
+            }
             if (this.assets[key].enabled) {
                 enabledAssets[key] = this.assets[key];
                 // if (key === this.selectedToken && typeof enabledAssets[key].balance === 'undefined') {

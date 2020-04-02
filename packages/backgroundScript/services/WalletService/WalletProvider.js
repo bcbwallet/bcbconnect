@@ -21,11 +21,6 @@ const defaultWalletProviders = {
     }
 };
 
-const defaultEnabledTokens = [
-    'BCB',
-    'DC'
-];
-
 const walletAppId = '100';
 
 class WalletProvider {
@@ -89,14 +84,8 @@ class WalletProvider {
             assets[item.symbol] = {
                 name: item.name,
                 address: item.conAddr,
-                icon: item.coinIcon,
-                source: 'network'
+                icon: item.coinIcon
             };
-            if (defaultEnabledTokens.includes(item.symbol)) {
-                if (typeof assets[item.symbol].enabled === 'undefined') {
-                    assets[item.symbol].enabled = true;
-                }
-            }
         });
         return assets;
     }
@@ -126,14 +115,8 @@ class WalletProvider {
                 address: item.conAddr,
                 icon: item.coinIcon,
                 balance: item.balance,
-                fiatValue: item.legalValue,
-                source: 'network'
+                fiatValue: item.legalValue
             };
-            if (defaultEnabledTokens.includes(item.symbol)) {
-                if (typeof assets[item.symbol].enabled === 'undefined') {
-                    assets[item.symbol].enabled = true;
-                }
-            }
         });
         return assets;
     }
