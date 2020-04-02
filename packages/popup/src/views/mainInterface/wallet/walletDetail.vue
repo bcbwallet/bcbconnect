@@ -61,7 +61,7 @@
         </div>
       </div>
     </mt-popup>
-    <mt-popup v-model="popupSyVisible" class="ex-keystore ex-sy">
+    <mt-popup v-model="popupSyVisible" class="ex-keystore ex-prikey">
       <div>
         <div class="pop-head tac">{{ $t('lang.walletDetail.exportPrKey') }}</div>
         <img
@@ -324,6 +324,7 @@ export default {
 		background: #FFFFFF;
 		border-radius: 11px;
 		width:290px
+		padding: 10px;
 		.pop-head
 			line-height: 20px;
 			margin-top: 11px;
@@ -346,14 +347,13 @@ export default {
 				margin-top:20px
 				margin-bottom:20px
 				word-break: break-all;
-				height: 70px;
+				height: 100px;
 				overflow: auto;
 			.threeBlueBtn
 				width:100%
 				height:36px
 				line-height:36px
-		&.ex-sy
-			padding: 10px;
+		&.ex-prikey
 			.key
 				margin-top:7px
 				margin-bottom:25px
