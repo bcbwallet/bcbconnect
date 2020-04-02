@@ -47,5 +47,13 @@ function injectPromise(func, ...args) {
     });
 }
 
-export { requestHandler, injectPromise };
+function deepCopy(obj) {
+    let _obj = Array.isArray(obj) ? [] : {}
+    for (let i in obj) {
+      _obj[i] = typeof obj[i] === 'object' ? deepCopy(obj[i]) : obj[i]
+    }
+    return _obj
+}
+
+export { requestHandler, injectPromise, deepCopy };
 
