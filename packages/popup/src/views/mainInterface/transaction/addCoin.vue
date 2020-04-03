@@ -157,7 +157,6 @@ export default {
     height: 26px;
     font-size: 14px;
     line-height: 26px;
-    color: #0170FF;
     cursor: pointer;
 	.coinAll
 		width:330px

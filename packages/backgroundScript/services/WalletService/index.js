@@ -731,11 +731,8 @@ class Wallet extends EventEmitter {
                     return Promise.reject('No token info');
                 }
                 tokenSymbol = nodeInfo.token.symbol;
-                if (NodeService.isPublicNetwork(network)) {
-                    source = 'network';
-                } else {
-                    source = 'user';
-                }
+                // tag as 'user, balance is requested from node
+                source = 'user';
             }
 
             this.reset();
