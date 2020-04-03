@@ -596,7 +596,7 @@ const NodeService = {
                     resolve(result.data);
                 } else {
                     logger.info(`HTTP response ${result.status} -- ${url}`);
-                    return reject('Server error');
+                    reject('Server error');
                 }
             }).catch (err => {
                 logger.info(`Node request error: ${err}`);
@@ -608,8 +608,6 @@ const NodeService = {
     async nodeRequest(url, data = false) {
         let start = Date.now();
         let result = await this._nodeRequest(url, data).catch(err => {
-            Promise.reject(err);
-
             let failure = this._getNodeStats(url, 'failure');
             if (!failure) failure = 0;
             failure++;
@@ -617,8 +615,12 @@ const NodeService = {
             if (failure >= 3) {
                 this._switchNode();
             }
+            return Promise.reject(err);
         });
         this._setNodeStats(url, 'latency', Date.now() - start);
+        if (!result) {
+            return Promise.reject('No result from node');
+        }
         return result;
     },
 
