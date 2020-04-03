@@ -11,6 +11,17 @@
       <p class="fs12">{{ myAddress }}</p>
       <img src="../../../assets/images/main/copy.png" />
     </div>
+    <div class="input-line flex flex-ai-c m-auto">
+      <input
+        type="text"
+        name=""
+        :placeholder="$t('lang.main.receiveValue')"
+        v-model="value"
+        style="flex:1"
+      />
+      <span class="token flex flex-ai-c m-auto">{{ token }}</span>
+      <span @click="setValueEv" class="set-value">{{ $t('lang.main.setValue') }}</span>
+    </div>
     <div
       class="threeBlueBtn colorfff tac cur-p fs16 m-auto"
       @click="gotoBcbscan"
@@ -33,6 +44,8 @@ export default {
   data() {
     return {
       myAddress: "",
+      token:"",
+      value: "",
       BCBSCAN: process.env.VUE_APP_BCBSCAN
     };
   },
@@ -41,9 +54,11 @@ export default {
     if (this.myAddress === "") {
       this.myAddress = this.$t('lang.main.noAddress');
     }
+    this.token = this.$store.state.token;
+    // this.qrcode(this.myAddress);
   },
   mounted() {
-    this.qrcode(this.myAddress);
+    this.qrcode(this.populateText());
   },
   methods: {
     back() {
@@ -64,6 +79,28 @@ export default {
         });
       });
     },
+    populateText() {
+      let text = 'bcbpay://' + this.token + '/' + this.myAddress + '/';
+      if (this.value === "") {
+        text += '*'
+      } else {
+        text += this.value;
+      }
+      return text
+    },
+    setValueEv() {
+      console.log('set value', this.value)
+      let trimNum = String(this.value);
+      if (trimNum.indexOf(".") > -1) {
+        if (trimNum.substring(trimNum.indexOf(".") + 1).length > 6) {
+          Toast({
+            message: this.$t('lang.main.atMostSix')
+          });
+          return;
+        }
+      }
+      this.qrcode(this.populateText());
+    },
     gotoBcbscan() {
       window.open(this.BCBSCAN);
     }
@@ -83,7 +120,16 @@ export default {
 		height: 43px;
 		padding: 0 13px 0 11px;
 		border-radius: 11px;
-		margin-bottom:65px
+		margin-bottom:20px
 		>p
 			margin-right:17px
+	.input-line
+		height: 43px;
+		padding:0px 13px 0px 11px;
+		margin-bottom:40px
+	.token
+		padding:0px 13px 0px 11px;
+	.set-value
+		color:#1166ff;
+		cursor:pointer;
 </style>

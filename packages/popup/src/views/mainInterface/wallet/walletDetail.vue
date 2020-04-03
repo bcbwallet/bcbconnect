@@ -93,8 +93,8 @@
           <!-- <div class="line"></div> -->
           <div class="de-msg color999 tac">{{ $t('lang.walletDetail.deleteText') }}</div>
           <div class="del-btn flex flex-jc-b">
-            <div class="tac cur-p" @click="confirmDel">{{ $t('lang.walletDetail.confirm') }}</div>
             <div class="tac cur-p" @click="cancelDel">{{ $t('lang.walletDetail.cancel') }}</div>
+            <div class="tac cur-p" @click="confirmDel">{{ $t('lang.walletDetail.confirm') }}</div>
           </div>
         </div>
       </div>
@@ -140,6 +140,7 @@ export default {
       deleteShow: false,
       inputPsdShow: false,
       psd: "",
+      walletId: "",
       walletName: "",
       walletAddr: "",
       encPrivkey: "",
@@ -156,17 +157,19 @@ export default {
   created() {
     let _this = this;
     let info = _this.$route.params.walletInfo;
+    _this.walletId = info.walletId;
     _this.walletName = info.walletName;
     _this.walletAddr = info.walletAddr;
-    _this.PopupAPI.getAccounts().then(accounts => {
+    _this.PopupAPI.getAccounts().then(result => {
       let arr = [];
-      for (let key in accounts) {
-        let param = {};
-        param.walletAddr = key;
-        param.walletName = accounts[key].name;
-        param.type = accounts[key].type;
-        arr.push(param);
-      }
+      Object.entries(result).forEach(([accountId, account]) => {
+          let param = {};
+          param.walletId = accountId;
+          param.walletAddr = account.address;
+          param.walletName = account.name;
+          param.type = account.type;
+          arr.push(param);    
+      });
       _this.walletArr = arr;
     });
   },
@@ -216,7 +219,7 @@ export default {
         });
         return;
       }
-      this.PopupAPI.setAccountName(_this.walletAddr, _this.walletName).then(
+      this.PopupAPI.setAccountName(_this.walletId, _this.walletName).then(
         res => {
           Toast({
             message: this.$t("lang.walletDetail.saveSuccess"),
@@ -244,7 +247,7 @@ export default {
     },
     confirmDel() {
       let _this = this;
-      _this.PopupAPI.deleteAccount(_this.walletAddr).then(res => {
+      _this.PopupAPI.deleteAccount(_this.walletId).then(res => {
         _this.deleteShow = false;
         Toast({
           message: this.$t("lang.walletDetail.deleteSuccess"),
@@ -378,11 +381,11 @@ export default {
 						line-height:36px
 						border-radius:8px
 						&:first-child
-							background: #0195FF;
-							color: #fff;
-						&:last-child
 							background: #D4E7FF;
 							color: #0195FF;
+						&:last-child
+							background: #0195FF;
+							color: #fff;
 			&.input-pop
 				.pop-body
 					width:246px

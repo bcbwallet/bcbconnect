@@ -60,7 +60,7 @@
             v-model="form.value"
             style="flex:1"
           />
-          <span @click="transferAllEv" class="all-transfer">{{ $t('lang.main.transferAll') }}</span>
+          <span @click="transferAllEv" class="transfer-all">{{ $t('lang.main.transferAll') }}</span>
         </div>
         <div class="colorF9794D">
           {{ $t('lang.main.networkFee') }}<span v-show="feeShow">{{ fee }} {{ feeCoin }}</span>
@@ -350,9 +350,9 @@ export default {
         });
         return;
       }
-      let tringNum = String(this.form.value);
-      if (tringNum.indexOf(".") > -1) {
-        if (tringNum.substring(tringNum.indexOf(".") + 1).length > 6) {
+      let trimNum = String(this.form.value);
+      if (trimNum.indexOf(".") > -1) {
+        if (trimNum.substring(trimNum.indexOf(".") + 1).length > 6) {
           Toast({
             message: this.$t('lang.main.atMostSix')
           });
@@ -600,7 +600,7 @@ export default {
 		line-height: 30px;
 		padding-left:15px;
 		cursor:pointer;
-.all-transfer
+.transfer-all
 	color:#1166ff;
 	cursor:pointer;
 </style>

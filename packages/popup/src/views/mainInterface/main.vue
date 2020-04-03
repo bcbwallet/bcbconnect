@@ -601,13 +601,14 @@ export default {
         async getAccounts() {
             let result = await this.PopupAPI.getAccounts();
             let arr = [];
-            for (let key in result) {
+            Object.entries(result).forEach(([accountId, account]) => {
                 let param = {};
-                param.walletAddr = key;
-                param.walletName = result[key].name;
-                param.type = result[key].type;
-                arr.push(param);
-            }
+                param.walletId = accountId;
+                param.walletAddr = account.address;
+                param.walletName = account.name;
+                param.type = account.type;
+                arr.push(param);    
+            });
             this.walletArr = arr;
             this.$store.state.accounts = arr;
         },
@@ -619,12 +620,14 @@ export default {
             console.log('selected', this.selNode);
         },
         async getSelectedAccount() {
+            let _this = this;
             if (this.account.hasOwnProperty('address')) {
+                console.log('savedAccount:', this.account);
                 this.myAddress = this.account.address;
                 this.walletName = this.account.name;
                 // _this.checkAccount()
             } else {
-                let result = await this.PopupAPI.getSelectedAccount();
+                let result = await this.PopupAPI.getSelectedAccountDetails();
                 console.log('selectedAccount:', result);
                 this.myAddress = result.address;
                 this.walletName = result.name;
@@ -634,7 +637,9 @@ export default {
             }
         },
         async getSelectedToken() {
-            this.selCoin = await this.PopupAPI.getSelectedToken();
+            let token = await this.PopupAPI.getSelectedToken();
+            this.selCoin = token;
+            this.$store.state.token = token;
         },
         async getSelectedAccountBalance() {
             try {
@@ -795,9 +800,10 @@ export default {
         },
         async selWallet(item, index) {
             this.selWalletIdx = index;
+            this.walletId = item.walletId;
             this.myAddress = item.walletAddr;
             this.walletName = item.walletName;
-            await this.PopupAPI.selectAccount(item.walletAddr);
+            await this.PopupAPI.selectAccount(item.walletId);
         },
         copy(addr) {
             this.$copyText(addr).then(() => {
