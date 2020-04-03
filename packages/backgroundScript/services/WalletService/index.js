@@ -9,6 +9,7 @@ import '@bcblink/lib/bcbjs';
 import { deepCopy } from '@bcblink/lib/common';
 import { getMainAddress, getChainAddress } from '@bcblink/lib/address';
 import extensionizer from 'extensionizer';
+import UUID from 'uuid/v4';
 
 import {
     APP_STATE,
@@ -36,12 +37,14 @@ class Wallet extends EventEmitter {
         this._registerListeners();
     }
 
-    reset() {
+    reset(opts) {
         this.network = false;
         this.chain = false;
 
-        this.accounts = {};
-        this.selectedAccount = false;
+        if (!opts || !opts.keepAccounts) {
+            this.accounts = {};
+            this.selectedAccount = false;
+        }
 
         this.assets = {};
         this.selectedToken = false;
@@ -144,7 +147,7 @@ class Wallet extends EventEmitter {
         const accounts = StorageService.getAccounts();
         const selectedAccount = StorageService.getSelectedAccount();
 
-        logger.info('Stored accounts:', Object.keys(accounts), 'selected:', selectedAccount);
+        logger.info('Stored accounts:', accounts, 'selected:', selectedAccount);
 
         // Compute account addresses by current network
         Object.entries(accounts).forEach(([ accountId, account ]) => {
@@ -166,12 +169,9 @@ class Wallet extends EventEmitter {
             }
             // accountObj.loadCache();
             accountObj.name = account.name;
-            this.accounts[ accountObj.address ] = accountObj;
-
-            if (accountId === selectedAccount) {
-                this.selectedAccount = accountObj.address;
-            }
+            this.accounts[ accountId ] = accountObj;
         });
+        this.selectedAccount = selectedAccount;
     }
 
     // _poll(fn, interval) {
@@ -497,7 +497,7 @@ class Wallet extends EventEmitter {
         this.resetState();
     }
 
-    generateAccount() {
+    _generateAccount() {
         let mnemonic = StorageService.getMnemonic();
         if (!mnemonic) {
             mnemonic = bcbjs.Wallet.createRandom(this.network).mnemonic;
@@ -506,7 +506,7 @@ class Wallet extends EventEmitter {
         }
         let accountIndex = StorageService.getAccountIndex();
         if (!Number.isInteger(accountIndex)) {
-            throw new Error('Account index corrupted');
+            return Promise.reject('Account index corrupted');
         }
         accountIndex += 1;
         let account = new Account(
@@ -518,6 +518,24 @@ class Wallet extends EventEmitter {
 
         StorageService.saveAccountIndex(accountIndex);
         return account;
+    }
+
+    _saveAccount(accountId, account) {
+        logger.info('Save account', accountId);
+        const accounts = StorageService.getAccounts();
+        const { type, name, lastUpdated } = account;
+        accounts[ accountId ] = {
+            type,
+            name,
+            lastUpdated
+        }
+
+        if (type === ACCOUNT_TYPE.MNEMONIC) {
+            accounts[ accountId ].accountIndex = account.accountIndex;
+        } else {
+            accounts[ accountId ].privateKey = account.privateKey;
+        }
+        StorageService.saveAccounts(accounts);
     }
 
     /**
@@ -538,31 +556,24 @@ class Wallet extends EventEmitter {
         // if(Object.keys(this.accounts).length === 0) {
         //     this.setCache();
         // }
-        const account = this.generateAccount();
-
-        const {
-            address
-        } = account;
-
+        const account = this._generateAccount();
         account.name = name;
 
-        this.accounts[ address ] = account;
-        StorageService.saveAccount(account);
-
+        const accountId = UUID();
+        this.accounts[ accountId ] = account;
+        this._saveAccount(accountId, account);
         this.emit('setAccounts', this.getAccounts());
-        this.selectAccount(address);
+        this.selectAccount(accountId);
 
         return true;
     }
     
-    setAccountName({ address, name }) {
-        let accountId = getMainAddress(address);
-
+    setAccountName({ accountId, name }) {
         if (!(accountId in this.accounts))
             return false;
 
         this.accounts[ accountId ].name = name;
-        StorageService.saveAccount(this.accounts[ accountId ]);
+        this._saveAccount(accountId, this.accounts[ accountId ]);
 
         if (accountId == this.selectedAccount) {
             this.emit('setAccount', this.getAccountDetails(accountId));
@@ -596,11 +607,12 @@ class Wallet extends EventEmitter {
         // if(Object.keys(this.accounts).length === 0) {
         //     this.setCache();
         // }
-        this.accounts[ address ] = account;
-        StorageService.saveAccount(account);
+        const accountId = UUID();
+        this.accounts[ accountId ] = account;
+        this._saveAccount(accountId, account);
 
         this.emit('setAccounts', this.getAccounts());
-        this.selectAccount(address);
+        this.selectAccount(accountId);
         return true;
     }
 
@@ -625,15 +637,15 @@ class Wallet extends EventEmitter {
         // if(Object.keys(this.accounts).length === 0) {
         //     this.setCache();
         // }
-        this.accounts[ address ] = account;
+        const accountId = UUID();
+        this.accounts[ accountId ] = account;
+        this._saveAccount(accountId, account);
 
         StorageService.saveMnemonic(mnemonic);
         StorageService.saveAccountIndex(0);
 
-        StorageService.saveAccount(account);
-
         this.emit('setAccounts', this.getAccounts());
-        this.selectAccount(address);
+        this.selectAccount(accountId);
         return true;
     }
 
@@ -656,21 +668,23 @@ class Wallet extends EventEmitter {
 
         account.name = name;
 
-        this.accounts[ address ] = account;
-        StorageService.saveAccount(account);
+        const accountId = UUID();
+        this.accounts[ accountId ] = account;
+        this._saveAccount(accountId, account);
 
         this.emit('setAccounts', this.getAccounts());
-        this.selectAccount(address);
+        this.selectAccount(accountId);
         return true;
     }
 
-    selectAccount(address) {
-        logger.info('Select account', address);
+    selectAccount(accountId) {
+        // accountId can be false
+        logger.info('Select account', accountId);
 
-        address = getMainAddress(address);
-        this.selectedAccount = address;
-        StorageService.saveSelectedAccount(address);
-        this.emit('setAccount', this.getAccountDetails(address));
+        this.selectedAccount = accountId;
+
+        StorageService.saveSelectedAccount(accountId);
+        this.emit('setAccount', this.getAccountDetails(accountId));
 
         if (this.state === APP_STATE.UNLOCKED) {
             this._setState(APP_STATE.READY);
@@ -679,16 +693,15 @@ class Wallet extends EventEmitter {
     }
 
     getAccounts() {
-        const accounts = Object.entries(this.accounts).reduce((accounts, [ address, account ]) => {
-            address = this.getChainAddress(address);
-            accounts[ address ] = {
+        const accounts = Object.entries(this.accounts).reduce((accounts, [ accountId, account ]) => {
+            accounts[ accountId ] = {
+                address: this.getChainAddress(account.address),
                 name: account.name,
                 type: account.type
             };
 
             return accounts;
         }, {});
-
         return accounts;
     }
 
@@ -710,10 +723,7 @@ class Wallet extends EventEmitter {
         if (!chain) {
             chain = network;
         }
-        // if (network === this.network && chain === this.chain) {
-        //     logger.info('Chain unchanged');
-        //     return true;
-        // }
+        let networkChanged = (network !== this.network);
 
         try {
             NodeService.init();
@@ -735,7 +745,7 @@ class Wallet extends EventEmitter {
                 source = 'user';
             }
 
-            this.reset();
+            this.reset({ keepAccounts: !networkChanged });
             this.network = network;
             this.chain = chain;
             this.emit('setChain', { network, chain });
@@ -750,7 +760,9 @@ class Wallet extends EventEmitter {
             logger.info(`Selected chain ${this.network}[${this.chain}]`);
 
             if (await StorageService.dataExists()) {
-                this._loadAccounts();
+                if (networkChanged) {
+                    this._loadAccounts();
+                }
                 this.emit('setAccounts', this.getAccounts());
                 this.emit('setAccount', this.getAccountDetails(this.selectedAccount));
             }
@@ -798,7 +810,7 @@ class Wallet extends EventEmitter {
     }
 
     getSelectedToken() {
-        return this.selectedToken;
+        return this.selectedToken ? this.selectedToken : '';
     }
 
     setCurrency(currency) {
@@ -823,7 +835,7 @@ class Wallet extends EventEmitter {
     async getSelectedAccountBalanceFromNode(token) {
         logger.info('Get balance from node');
 
-        let address = this.getChainAddress(this.selectedAccount);
+        let address = this.getChainAddress(this.getSelectedAccountAddress());
         let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
 
         let value = await NodeService.getBalance(address, tokenAddress);
@@ -835,7 +847,7 @@ class Wallet extends EventEmitter {
     async getSelectedAccountBalanceFromProvider(token) {
         logger.info('Get balance from provider');
 
-        let address = this.getChainAddress(this.selectedAccount);
+        let address = this.getChainAddress(this.getSelectedAccountAddress());
         let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
 
         let { balance, fiatValue, fees } = await this.walletProvider.getBalance(address, tokenAddress);
@@ -895,7 +907,7 @@ class Wallet extends EventEmitter {
         logger.info('Enable assets:', assets);
 
         if (!Array.isArray(assets)) {
-            throw new Error('No asset list');
+            return Promise.reject('No asset list');
         }
 
         let changed = false;
@@ -940,7 +952,7 @@ class Wallet extends EventEmitter {
 
         const assets = this.assets;
         if (this.walletProvider) {
-            let address = this.getChainAddress(this.selectedAccount);
+            let address = this.getChainAddress(this.getSelectedAccountAddress());
             let accountAssets = await this.walletProvider.getAccountAssets(address);
 
             // console.log('updated assets', accountAssets)
@@ -978,9 +990,7 @@ class Wallet extends EventEmitter {
                 //     enabledAssets[key].balance = result.balance;
                 // }
                 if (enabledAssets[key].source === 'user') {
-                    logger.info('user asset:', key);
                     let result = await this.getSelectedAccountBalanceFromNode(key);
-                    logger.info('balance:', result);
                     enabledAssets[key].balance = result.balance;
                 }
             }
@@ -1002,7 +1012,7 @@ class Wallet extends EventEmitter {
         }
         let tokenAddress = await NodeService.getTokenAddressBySymbol(this.selectedToken);
 
-        let address = this.getChainAddress(this.selectedAccount);
+        let address = this.getChainAddress(this.getSelectedAccountAddress());
         let result = await this.walletProvider.getAccountTransactions(address, tokenAddress, page, pageSize);
         // logger.info('transactions:', result);
         return result;
@@ -1088,14 +1098,14 @@ class Wallet extends EventEmitter {
         return await StorageService.getLanguage();
     }
 
-    getAccount(address) {
-        return this.accounts[address];
+    getAccount(accountId) {
+        return this.accounts[accountId];
     }
 
-    getAccountDetails(address) {
-        logger.info('Get account details of', address);
+    getAccountDetails(accountId) {
+        logger.info('Get account details of', accountId);
 
-        if(!address) {
+        if(!accountId) {
             return {
                 type: null,
                 name: null,
@@ -1103,21 +1113,35 @@ class Wallet extends EventEmitter {
             };
         }
 
-        address = getMainAddress(address);
-        let details = this.accounts[ address ].getDetails();
-        details.address = this.getChainAddress(details.address);
-        return details;
+        let { type, name, address } = this.accounts[ accountId ];
+        address = this.getChainAddress(address);
+        return {
+            type,
+            name,
+            address
+        };
     }
 
     getSelectedAccount() {
+        return this.selectedAccount ? this.selectedAccount : '';
+    }
+
+    getSelectedAccountAddress() {
+        return this.accounts[this.selectedAccount].address;
+    }
+
+    getSelectedAccountDetails() {
         return this.getAccountDetails(this.selectedAccount);
     }
 
-    deleteAccount(address) {
-        address = getMainAddress(address);
+    deleteAccount(accountId) {
+        logger.info('Delete account', accountId);
 
-        delete this.accounts[ address ];
-        StorageService.deleteAccount(address);
+        if (!(accountId in this.accounts)) {
+            return false;
+        }
+        delete this.accounts[ accountId ];
+        StorageService.deleteAccount(accountId);
 
         this.emit('setAccounts', this.getAccounts());
 
@@ -1127,7 +1151,9 @@ class Wallet extends EventEmitter {
             return true;
         }
 
-        this.selectAccount(Object.keys(this.accounts)[ 0 ]);
+        if (accountId === this.selectedAccount) {
+            this.selectAccount(Object.keys(this.accounts)[ 0 ]);
+        }
         return true;
     }
 
@@ -1158,7 +1184,7 @@ class Wallet extends EventEmitter {
         this.checkTransactionDefaults(transaction);
         if (typeof transaction.nonce === 'undefined') {
             let nonce = await NodeService.getTransactionCount(
-                                this.getChainAddress(this.selectedAccount));
+                                this.getChainAddress(this.getSelectedAccountAddress()));
             transaction.nonce = (nonce + 1).toString();
         }
 

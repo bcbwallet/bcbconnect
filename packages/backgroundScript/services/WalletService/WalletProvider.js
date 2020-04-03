@@ -32,7 +32,7 @@ class WalletProvider {
             this.provider = providedNetworks[this.network];
             this.chain = chain;
         } else {
-            throw new Error(`Unsupported network ${network}`);
+            return Promise.reject(`Unsupported network ${network}`);
         }
     }
 

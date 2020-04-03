@@ -64,8 +64,9 @@ const backgroundScript = {
         duplex.on('setAccountName', this.walletService.setAccountName);
         duplex.on('selectAccount', this.walletService.selectAccount);
         duplex.on('getSelectedAccount', this.walletService.getSelectedAccount);
-        duplex.on('getAccounts', this.walletService.getAccounts);
+        duplex.on('getSelectedAccountDetails', this.walletService.getSelectedAccountDetails);
         duplex.on('getAccountDetails', this.walletService.getAccountDetails);
+        duplex.on('getAccounts', this.walletService.getAccounts);
         duplex.on('importAccount', this.walletService.importAccount);
         duplex.on('checkMnemonic', this.walletService.checkMnemonic);
         duplex.on('importMnemonic', this.walletService.importMnemonic);

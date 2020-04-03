@@ -165,14 +165,14 @@ const StorageService = {
         return Object.keys(this.accounts).length;
     },
 
-    hasAccount(address) {
-        return (address in this.accounts);
+    hasAccount(accountId) {
+        return (accountId in this.accounts);
     },
 
-    saveSelectedAccount(address) {
-        logger.info('Storing selected account', address);
+    saveSelectedAccount(accountId) {
+        logger.info('Storing selected account', accountId);
 
-        this.selectedAccount = address;
+        this.selectedAccount = accountId;
         this.save('selectedAccount');
     },
 
@@ -204,22 +204,21 @@ const StorageService = {
         return this.accounts;
     },
 
-    getAccount(address) {
-        return this.accounts[ address ];
+    getAccount(accountId) {
+        return this.accounts[ accountId ];
     },
 
-    deleteAccount(address) {
-        logger.info('Deleting account', address);
+    deleteAccount(accountId) {
+        logger.info('Deleting account', accountId);
 
-        delete this.accounts[ address ];
+        delete this.accounts[ accountId ];
         this.save('accounts');
     },
 
-    saveAccount(account) {
-        logger.info('Saving account', account.address);
+    saveAccounts(accounts) {
+        logger.info('Saving accounts');
 
-        this.accounts[account.address] = account;
-
+        this.accounts = accounts;
         this.save('accounts');
     },
 

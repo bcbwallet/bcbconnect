@@ -1,6 +1,6 @@
 import Logger from '@bcblink/lib/logger';
 import StorageService from '../StorageService';
-import randomUUID from 'uuid/v4';
+import UUID from 'uuid/v4';
 import axios from 'axios';
 
 import { deepCopy } from '@bcblink/lib/common';
@@ -170,7 +170,7 @@ const NodeService = {
                 return { network: splits[0], chain: splits[0] };
             }
         }
-        throw new Error(`Invalid chain id: ${chainId}`);
+        return Promise.reject(`Invalid chain id: ${chainId}`);
     },
 
     async _updateChainsOfNetwork(network) {
@@ -194,10 +194,10 @@ const NodeService = {
         logger.info(`chains: ${chains}`);
         if (chains.length > 0) {
             // remove jiujiu chain
-            let pos = chains.indexOf('jiujiu');
-            if (pos >= 0) {
-                chains.splice(pos, 1);
-            }
+            // let pos = chains.indexOf('jiujiu');
+            // if (pos >= 0) {
+            //     chains.splice(pos, 1);
+            // }
             this.networks[network].chains = chains;
             this.saveNetworks();
         }
@@ -453,7 +453,7 @@ const NodeService = {
     },
 
     _addNode(node) {
-        const nodeId = randomUUID();
+        const nodeId = UUID();
         this.nodes[ nodeId ] = {
             ...node
         };
@@ -481,7 +481,7 @@ const NodeService = {
 
     deleteNode(nodeId) {
         if (nodeId === this.selectedNode)
-            throw new Error('Cannot delete selected node')
+            return Promise.reject('Cannot delete selected node')
         delete this.nodes[ nodeId ];
         this.saveNodes();
         return true;
@@ -493,7 +493,7 @@ const NodeService = {
 
     getDefaultNodeUrl(networkId) {
         if (!(networkId in publicNetworks)) {
-            throw new Error(`No default node for ${networkId}`);
+            return Promise.reject(`No default node for ${networkId}`);
         }
         return publicNetworks[networkId].urls[0];
     },
@@ -535,7 +535,7 @@ const NodeService = {
         let chainId = this.getChainId();
         let url = this.getDefaultNodeUrl(chainId);
         if (url) {
-            let nodeId = randomUUID();
+            let nodeId = UUID();
             // nodes cleared
             this.nodes = {};
             this.nodes[nodeId] = {

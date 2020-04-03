@@ -28,7 +28,7 @@ class Account {
 
     _importMnemonic(mnemonic, accountIndex) {
         if (!this.network) {
-            throw new Error('Network not set');
+            return Promise.reject('Network not set');
         }
         try {
             // this.mnemonic = mnemonic;
@@ -37,20 +37,20 @@ class Account {
             this.privateKey = wallet.privateKey;
             this.address = wallet.address;
         } catch (err) {
-            throw new Error('INVALID_MNEMONIC');
+            return Promise.reject('INVALID_MNEMONIC');
         }
     }
 
     _importPrivateKey(privateKey) {
         if (!this.network) {
-            throw new Error('Network not set');
+            return Promise.reject('Network not set');
         }
         try {
             this.privateKey = privateKey;
             let wallet = new bcbjs.Wallet(privateKey, this.network);
             this.address = wallet.address;
         } catch (err) {
-            throw new Error('INVALID_PRIVATE_KEY');
+            return Promise.reject('INVALID_PRIVATE_KEY');
         }
     }
 

@@ -69,16 +69,16 @@ export default {
         return this.duplex.send('addAccount', name);
     },
 
-    setAccountName(address, name) {
-        return this.duplex.send('setAccountName', { address, name });
+    setAccountName(accountId, name) {
+        return this.duplex.send('setAccountName', { accountId, name });
     },
 
-    selectAccount(address) {
-        return this.duplex.send('selectAccount', address);
+    selectAccount(accountId) {
+        return this.duplex.send('selectAccount', accountId);
     },
 
-    deleteAccount(address) {
-        return this.duplex.send('deleteAccount', address);
+    deleteAccount(accountId) {
+        return this.duplex.send('deleteAccount', accountId);
     },
 
     getAccounts() {
@@ -101,8 +101,12 @@ export default {
         return this.duplex.send('getSelectedAccount');
     },
 
-    getAccountDetails(address) {
-        return this.duplex.send('getAccountDetails', address);
+    getAccountDetails(accountId) {
+        return this.duplex.send('getAccountDetails', accountId);
+    },
+
+    getSelectedAccountDetails() {
+        return this.duplex.send('getSelectedAccountDetails');
     },
 
     getRecentRecipients() {
