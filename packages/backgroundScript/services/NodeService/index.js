@@ -2,6 +2,9 @@ import Logger from '@bcblink/lib/logger';
 import StorageService from '../StorageService';
 import UUID from 'uuid/v4';
 import axios from 'axios';
+import { sha3_256 } from 'js-sha3';
+import { hexlify, arrayify, concat } from '@bcblink/lib/bytes';
+import { sleep } from '@bcblink/lib/common';
 
 import { deepCopy } from '@bcblink/lib/common';
 
@@ -848,13 +851,49 @@ const NodeService = {
         if (response.check_tx && response.check_tx.code != 200) {
             return Promise.reject(this._nodeTxErrorToString(response.check_tx));
         }
-        if (response.deliver_tx) {
-            if (response.deliver_tx.code != 200) {
-                return Promise.reject(this._nodeTxErrorToString(response.deliver_tx));
-            }
+        if (response.deliver_tx && response.deliver_tx.code == 200) {
             return response.deliver_tx.tx_hash;
         }
-        return Promise.reject('No tx status in response');
+        let hash = hexlify(sha3_256.update(signedTx).digest());
+        await sleep(1000);
+        let success = await this.checkTransactionStatus(hash);
+        if (success) {
+            return hash.substring(2);
+        }
+        if (!response.deliver_tx) {
+            return Promise.reject('No deliver_tx in response');
+        }
+        return Promise.reject(this._nodeTxErrorToString(response.deliver_tx));
+    },
+
+    async checkTransactionStatus(hash) {
+        if (!hash) {
+            return Promise.reject('No hash provided');
+        }
+        hash = hash.toLowerCase();
+        if (hash.substring(0, 2) == '0x') {
+            hash = hash.substring(2);
+        }
+        if (!this.selectedNode) {
+            return Promise.reject('No node selected');
+        }
+        let result = await this.nodeRequest(
+            this.nodes[this.selectedNode].url + '/tx?hash="' + hash + '"'
+        );
+        if (result.error) {
+            return Promise.reject(this._nodeErrorToString(result.error));
+        }
+        if (!result.result) {
+            return Promise.reject('No result in response');
+        }
+        let response = result.result;
+        if (response.deliver_tx && response.deliver_tx.code == 200) {
+            return true;
+        }
+        if (!response.deliver_tx) {
+            return Promise.reject('No deliver_tx in response');
+        }
+        return Promise.reject(this._nodeTxErrorToString(response.deliver_tx));
     },
 
     async getTransactionCost(calls) {

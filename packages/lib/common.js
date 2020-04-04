@@ -55,5 +55,9 @@ function deepCopy(obj) {
     return _obj
 }
 
-export { requestHandler, injectPromise, deepCopy };
+function sleep (ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export { requestHandler, injectPromise, deepCopy, sleep };
 
