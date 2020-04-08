@@ -159,7 +159,7 @@ const backgroundScript = {
 
                 let success;
                 try {
-                    const account = this.walletService.getSelectedAccount();
+                    const account = this.walletService.getSelectedAccountDetails();
 
                     let balance = await NodeService.getBalance(account.address, tokenAddress);
                     // logger.info(balance)
@@ -167,7 +167,7 @@ const backgroundScript = {
                     data = balance;
                 } catch (err) {
                     success = false;
-                    data = err.message;
+                    data = err;
                 }
                 resolve({ success, data, uuid });
 
@@ -177,7 +177,7 @@ const backgroundScript = {
 
                 let success;
                 try {
-                    const account = this.walletService.getSelectedAccount();
+                    const account = this.walletService.getSelectedAccountDetails();
 
                     let tokenAddress = await NodeService.getTokenAddressBySymbol(symbol);
                     let balance = await NodeService.getBalance(account.address, tokenAddress);
@@ -186,7 +186,7 @@ const backgroundScript = {
                     data = balance;
                 } catch (err) {
                     success = false;
-                    data = err.message;
+                    data = err;
                 }
                 resolve({ success, data, uuid });
 
@@ -203,7 +203,7 @@ const backgroundScript = {
                 break;
             } case 'signMessage': {
                 try {
-                    const account = this.walletService.getSelectedAccount();
+                    const account = this.walletService.getSelectedAccountDetails();
 
                     let result = await this.walletService.signMessage(data);
                     let { signature, pubkey } = result;
@@ -227,7 +227,7 @@ const backgroundScript = {
                     logger.error(`Failed to sign message: ${err}`);
                     return resolve({
                         success: false,
-                        data: err.message,
+                        data: err,
                         uuid
                     });
                 }
@@ -237,7 +237,7 @@ const backgroundScript = {
                 let transaction = data;
 
                 try {
-                    const account = this.walletService.getSelectedAccount();
+                    const account = this.walletService.getSelectedAccountDetails();
 
                     this.walletService.checkTransactionDefaults(transaction);
                     let signedTx = await this.walletService.signTransaction(transaction);
@@ -264,7 +264,7 @@ const backgroundScript = {
                     logger.error(`Failed to sign transaction: ${err}`);
                     return resolve({
                         success: false,
-                        data: err.message,
+                        data: err,
                         uuid
                     });
                 }
@@ -274,7 +274,7 @@ const backgroundScript = {
                 let transaction = data;
 
                 try {
-                    const account = this.walletService.getSelectedAccount();
+                    const account = this.walletService.getSelectedAccountDetails();
 
                     this.walletService.checkTransactionDefaults(transaction);
                     let signedTx = await this.walletService.signTransaction(transaction);
@@ -289,7 +289,7 @@ const backgroundScript = {
                         } catch (err) {
                             logger.error(`Failed to send transaction: ${err}`);
                             success = false;
-                            data = err.message;
+                            data = err;
                         }
                         return callback({ success, data, uuid });
                     }).bind(this);
@@ -317,7 +317,7 @@ const backgroundScript = {
                     logger.error(`Failed to sign transaction: ${err}`);
                     return resolve({
                         success: false,
-                        data: err.message,
+                        data: err,
                         uuid
                     });
                 }
@@ -334,7 +334,7 @@ const backgroundScript = {
                 } catch (err) {
                     logger.error(`Failed to broadcast transaction: ${err}`);
                     success = false;
-                    data = err.message;
+                    data = err;
                 }
                 resolve({ success, data, uuid });
 
@@ -348,7 +348,7 @@ const backgroundScript = {
                 } = data;
 
                 try {
-                    const account = this.walletService.getSelectedAccount();
+                    const account = this.walletService.getSelectedAccountDetails();
 
                     let transaction = await this.walletService.getTransactionForTransfer({ token, to, value, note });
                     let signedTx = await this.walletService.signTransaction(transaction);
@@ -363,7 +363,7 @@ const backgroundScript = {
                         } catch (err) {
                             logger.error(`Failed to send transaction: ${err}`);
                             success = false;
-                            data = err.message;
+                            data = err;
                         }
                         return callback({ success, data, uuid });
                     }).bind(this);
@@ -391,7 +391,7 @@ const backgroundScript = {
                     logger.error(`Failed to transfer token: ${err}`);
                     return resolve({
                         success: false,
-                        data: err.message,
+                        data: err,
                         uuid
                     });
                 }
