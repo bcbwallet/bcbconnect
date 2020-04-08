@@ -141,7 +141,7 @@ const backgroundScript = {
             case 'init': {
                 let response = {};
                 const version = extensionizer.runtime.getManifest().version;
-                const account = this.walletService.getSelectedAccount();
+                const account = this.walletService.getSelectedAccountDetails();
                 const chain = this.walletService.getSelectedChain();
                 response.version = version;
                 response.account = account;
