@@ -244,19 +244,19 @@ class Wallet extends EventEmitter {
     async resetState() {
         logger.info('Resetting app state');
 
-        if(!await StorageService.dataExists()) {
+        if (!StorageService.hasAccounts) {
             return this._setState(APP_STATE.UNINITIALISED);
         }
 
-        if(!StorageService.ready) {
+        if (!StorageService.ready) {
             return this._setState(APP_STATE.PASSWORD_SET);
         }
 
-        if(!StorageService.hasAccounts && StorageService.ready) {
+        if (!StorageService.hasAccounts && StorageService.ready) {
             return this._setState(APP_STATE.UNLOCKED);
         }
 
-        if(this.confirmations.length > 0) {
+        if (this.confirmations.length > 0) {
             return this._setState(APP_STATE.REQUESTING_CONFIRMATION);
         }
 
