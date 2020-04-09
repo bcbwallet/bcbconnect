@@ -154,13 +154,13 @@ export default {
     let _this = this;
     let state = _this.state;
     console.log("open state: ", state);
-    if (state == -1) {
-      _this.PopupAPI.requestState().then(appState => {
-        _this.initState(appState);
-      });
-    } else {
+    // if (state == -1) {
+    //   _this.PopupAPI.requestState().then(appState => {
+    //     _this.initState(appState);
+    //   });
+    // } else {
       _this.initState(state);
-    }
+    // }
   },
   methods: {
     onClickoutside(){
@@ -180,15 +180,15 @@ export default {
       if (state == 1) {
         _this.ifHasLogin = true;
       }
-      if (state == 5) {
-        _this.$router.push("/main");
-      }
-      if ((state = 0)) {
-        localStorage.clear();
-      } else {
-        localStorage.removeItem("initCoinArr");
-        localStorage.removeItem("initialized");
-      }
+      // if (state == 5) {
+      //   _this.$router.push("/main");
+      // }
+      // if ((state = 0)) {
+      //   localStorage.clear();
+      // } else {
+      //   localStorage.removeItem("initCoinArr");
+      //   localStorage.removeItem("initialized");
+      // }
     },
     gotoNewWallet() {
       this.$router.push("/terms");
@@ -215,7 +215,7 @@ export default {
           // }
           _this.isProcessing = false;
           _this.$store.commit("SET_HOSTNAME", "");
-          _this.$router.push("/main");
+          // _this.$router.push("/main");
         })
         .catch(err => {
           _this.isProcessing = false;

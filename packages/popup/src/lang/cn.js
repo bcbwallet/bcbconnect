@@ -293,14 +293,14 @@ export const lang = {
 		"enterNewPwd":"请输入新密码",
 		"enterConfirmPwd":"请输入确认新密码",
 		"importingWait":"正在导入，请稍后",
-		"mnemonicError":"输入助记词不正确",
-		"privateKeyError":"输入私钥不正确",
+		"mnemonicError":"助记词不正确",
+		"privateKeyError":"私钥不正确",
 		"enterPrivateKey":"请输入私钥",
 		"importPrivateKeySuccess":"导入私钥成功",
 		"enterKeystore":"请输入keystore",
 		"enterKeystorePwd":"请输入keystore密码",
 		"importKeystoreSuccess":"导入keystore成功",
-		"enterKeystoreOrPwdError":"输入keystore内容或keystore密码不正确"
+		"keystoreOrPwdError":"keystore内容或keystore密码不正确"
 	},
 	"backupMnemonic":{//备份两个助记词界面
 		"skip":"跳过",

@@ -65,7 +65,7 @@ Promise.all([
   });
 
   duplex.on("setAccount", account => {
-    console.log('selectedAccount: ', account);
+    console.log('account: ', account);
     store.state.account = account;
   });
 
@@ -89,7 +89,6 @@ Promise.all([
 });
 
 function onNewState(appState) {
-  // console.log(router.currentRoute);
   switch (appState) {
     case APP_STATE.UNINITIALISED: // [x] First user creates password
       if (router.currentRoute.path == "/open/begin") {
@@ -108,9 +107,9 @@ function onNewState(appState) {
         router.push({ name: "backupMnemonic", params: { type: 0 } });
       } else {
         // TODO?
-        // if (router.currentRoute.path != "/main") {
-        //   router.push({ path: "/main" });
-        // }
+        if (router.currentRoute.path != "/main") {
+          router.push({ path: "/main" });
+        }
       }
       break;
     case APP_STATE.REQUESTING_CONFIRMATION:

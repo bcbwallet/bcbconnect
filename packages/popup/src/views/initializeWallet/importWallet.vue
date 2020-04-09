@@ -285,7 +285,6 @@ export default {
                   _this.form.walletName
                 ).then(res => {
                   _this.PopupAPI.setSettings({ mnemSaved: true }).then(res => {});
-                    _this.$router.push("/main");
                     _this.langArr = false;
                 }).catch(err => {
 				          console.log('importMnemonic error:', err);
@@ -321,7 +320,6 @@ export default {
               ).then(res => {
                   _this.langArr = false;
                   _this.PopupAPI.setSettings({ mnemSaved: true }).then(res => {});
-                  _this.$router.push("/main");
               }).catch(err => {
                 Toast({
                   message: err
@@ -367,10 +365,8 @@ export default {
             position: "top",
             iconClass: "mintui mintui-success"
           });
-          setTimeout(function() {
-            _this.langArr = false;
-            _this.$router.push("/main");
-          }, 1000);
+          _this.langArr = false;
+          _this.$router.push("/main");
         }).catch(err => {
           _this.langArr = false;
           Toast({
@@ -415,14 +411,12 @@ export default {
             position: "top",
             iconClass: "mintui mintui-success"
           });
-          setTimeout(function() {
-            _this.langArr = false;
-            _this.$router.push("/main");
-          }, 1000);
+          _this.langArr = false;
+          _this.$router.push("/main");
         }).catch(err => {
           _this.langArr = false;
           Toast({
-            message: this.$t('lang.importWallet.enterKeystoreOrPwdError')
+            message: this.$t('lang.importWallet.keystoreOrPwdError')
           });
         });
       }

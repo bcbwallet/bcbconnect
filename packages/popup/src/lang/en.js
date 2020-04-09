@@ -299,7 +299,7 @@ export const lang = {
 		"enterKeystore":"Please enter keystore",
 		"enterKeystorePwd":"Please enter keystore password",
 		"importKeystoreSuccess":"Successfully imported keystore",
-		"enterKeystoreOrPwdError":"The keystore content or keystore password is incorrect"
+		"keystoreOrPwdError":"The keystore or keystore password is incorrect"
 	},
 	"backupMnemonic":{//备份两个助记词界面
 		"skip":"Skip",

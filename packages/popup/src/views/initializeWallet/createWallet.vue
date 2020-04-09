@@ -295,7 +295,6 @@ export default {
                 _this.$store.commit('SET_FROMCREATESTATE', true);
                 _this.PopupAPI.addAccount(_this.formAll.walletName).then(res => {
                     _this.isProcessing = false;
-                    // _this.$router.push({name:'backupMnemonic',params:{type:0}})
                 }).catch(err => {
                     console.log('addAccount error:', err);
                     Toast({
@@ -335,9 +334,6 @@ export default {
                     iconClass: 'mintui mintui-success'
                 });
                 _this.formAll.walletName = '';
-                setTimeout(function() {
-                    _this.$router.push('/main');
-                }, 1000);
             });
         },
         importWallet() {
