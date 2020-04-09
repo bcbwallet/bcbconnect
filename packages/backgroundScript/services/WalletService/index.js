@@ -820,7 +820,7 @@ class Wallet extends EventEmitter {
     }
 
     getCurrency() {
-        return this.currency;
+        return this.currency ? this.currency : '';
     }
 
     getChainAddress(address) {
