@@ -104,22 +104,22 @@
                     >
                         <img
                             src="../../assets/images/main/down.png"
-                            v-if="item.from == myAddress"
+                            v-if="item.from == walletAddr"
                         />
                         <img
                             src="../../assets/images/main/up.png"
-                            v-if="item.from != myAddress"
+                            v-if="item.from != walletAddr"
                         />
                         <div class="flex flex-jc-b trans-data-addr flex-ai-c">
                             <div>
                                 <p class="color444">
                                     {{
-                                        (item.from == myAddress
+                                        (item.from == walletAddr
                                             ? item.to
                                             : item.from
                                         ).slice(0, 6)
                                     }}...{{
-                                        (item.from == myAddress
+                                        (item.from == walletAddr
                                             ? item.to
                                             : item.from
                                         ).slice(-6)
@@ -131,8 +131,8 @@
                             </div>
                             <span
                                 class="color0170FF"
-                                :class="{ colorFF6F6F: item.from == myAddress }"
-                                >{{ item.from == myAddress ? '-' : '+'
+                                :class="{ colorFF6F6F: item.from == walletAddr }"
+                                >{{ item.from == walletAddr ? '-' : '+'
                                 }}{{ item.value + ' ' + item.valueName }}
                             </span>
                         </div>
@@ -162,7 +162,7 @@
                     v-for="(item, index) in walletArr"
                     :key="index"
                     class="wallet-single flex flex-jc-b cur-p pos-r"
-                    :class="{ selWallet: myAddress == item.walletAddr }"
+                    :class="{ selWallet: walletId == item.walletId }"
                     @click="selWallet(item, index)"
                 >
                     <div>
@@ -191,7 +191,7 @@
                     <img
                         src="../../assets/images/main/select.png"
                         class="pos-a select"
-                        v-if="myAddress == item.walletAddr"
+                        v-if="walletId == item.walletId"
                     />
                 </div>
             </div>
@@ -293,7 +293,7 @@
                     @click="close"
                 />
                 <div class="popTitle fs16 tac bold">
-                    {{ recordDetailData.from == myAddress ? '-' : '+'
+                    {{ recordDetailData.from == walletAddr ? '-' : '+'
                     }}{{
                         recordDetailData.value +
                             ' ' +
@@ -432,11 +432,14 @@ export default {
     directives: { clickOutside },
     data() {
         return {
-            myAddress: '',
             tabIndex: '0',
-            transRecords: [],
+            walletId: '',
+            walletAddr: '',
+            walletName: '',
             walletArr: [],
             selWalletIdx: '0',
+            transRecords: [],
+            recordDetailData: {},
             setArr: [
                 { active: false },
                 { active: false },
@@ -457,14 +460,12 @@ export default {
                 label: '',
                 status: 0
             },
-            recordDetailData: {},
             langIdx: '0',
             currencyIdx: '0',
             selCurrency: 'USD',
             popupVisible: false,
             selCoin: '',
             selAsset: { balance: '0', fiatValue: '0' },
-            cAddress: '',
             page: 1,
             pageSize: 10,
             loading: true,
@@ -473,14 +474,7 @@ export default {
             sxShow: false,
             switchValue: false,
             isLogoutBoxShow: false,
-            // netArr: [],
-            // valueRadio: '',
-            networkPopShow: false,
-            walletName: '',
             selNode: '',
-            contractAddr: '',
-            // selNetwork: '',
-            // selChain: '',
 
             // 新需求补充：网络设置功能
             isNetworkShow: false, // 是否显示网络树形结构组件
@@ -536,15 +530,13 @@ export default {
             this.staticData();
             await this.getSettings();
             if (this.tabIndex == 0) {
-                await this.getSelectedAccount();
+                await this.getSelectedAccountDetails();
                 await this.getSelectedToken();
                 await this.getSelectedAccountBalance();
                 await this.getAccountTransactions();
             } else if (this.tabIndex == 1) {
-                await this.getSelectedAccount();
                 await this.getAccounts();
             } else if (this.tabIndex == 2) {
-                await this.getSelectedAccount();
                 await this.getNodes();
             }
 
@@ -599,9 +591,9 @@ export default {
             }
         },
         async getAccounts() {
-            let result = await this.PopupAPI.getAccounts();
+            let accounts = await this.PopupAPI.getAccounts();
             let arr = [];
-            Object.entries(result).forEach(([accountId, account]) => {
+            Object.entries(accounts).forEach(([accountId, account]) => {
                 let param = {};
                 param.walletId = accountId;
                 param.walletAddr = account.address;
@@ -611,6 +603,9 @@ export default {
             });
             this.walletArr = arr;
             this.$store.state.accounts = arr;
+
+            let selected = await this.PopupAPI.getSelectedAccount();
+            this.walletId = selected;
         },
         async getNodes() {
             let result = await this.PopupAPI.getNodes();
@@ -619,17 +614,17 @@ export default {
             this.selNode = result.nodes[result.selected].url;
             console.log('selected', this.selNode);
         },
-        async getSelectedAccount() {
+        async getSelectedAccountDetails() {
             let _this = this;
             if (this.account.hasOwnProperty('address')) {
                 console.log('savedAccount:', this.account);
-                this.myAddress = this.account.address;
+                this.walletAddr = this.account.address;
                 this.walletName = this.account.name;
                 // _this.checkAccount()
             } else {
                 let result = await this.PopupAPI.getSelectedAccountDetails();
                 console.log('selectedAccount:', result);
-                this.myAddress = result.address;
+                this.walletAddr = result.address;
                 this.walletName = result.name;
 
                 this.$store.state.account = result;
@@ -654,14 +649,6 @@ export default {
 
             this.sxShow =
                 String(this.selAsset.balance).length > 9 ? true : false;
-        },
-        async networkEv() {
-            console.log('network toggled', this.networkPopShow)
-            this.networkPopShow = !this.networkPopShow;
-            this.networkPopShow == true && await this.getSelectedNetwork();
-        },
-        onClickOutside() {
-            this.networkPopShow = false;
         },
         logoutCancel() {
             this.isLogoutBoxShow = false;
@@ -743,7 +730,7 @@ export default {
         },
         checkAccount() {
             let _this = this;
-            if (_this.myAddress === '') {
+            if (_this.walletAddr === '') {
                 Toast({
                     message: this.$t('lang.main.noAccount')
                 });
@@ -778,7 +765,7 @@ export default {
             // sessionStorage.setItem('selChain', this.selChain);
         },
         gotoTransfer() {
-            if (this.myAddress === '') {
+            if (this.walletAddr === '') {
                 Toast({
                     message: this.$t('lang.main.noAccount')
                 });
@@ -790,18 +777,18 @@ export default {
             });
         },
         gotoReceive() {
-            if (this.myAddress === '') {
+            if (this.walletAddr === '') {
                 Toast({
                     message: this.$t('lang.main.noAccount')
                 });
                 return;
             }
-            this.$router.push('/receipt');
+            this.$router.push('/receive');
         },
         async selWallet(item, index) {
             this.selWalletIdx = index;
             this.walletId = item.walletId;
-            this.myAddress = item.walletAddr;
+            this.walletAddr = item.walletAddr;
             this.walletName = item.walletName;
             await this.PopupAPI.selectAccount(item.walletId);
         },

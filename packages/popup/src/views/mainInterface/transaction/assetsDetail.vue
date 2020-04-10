@@ -53,7 +53,7 @@ export default {
   name: "assetsDetail",
   data() {
     return {
-      myAddress: "",
+      walletAddr: "",
       coinArr: [],
       selAsset: { symbol: "", balance: "0", fiatValue: "0" },
       selCurrency: "USD",
@@ -64,7 +64,7 @@ export default {
     };
   },
   created() {
-    this.myAddress = this.$store.state.account.address;
+    this.walletAddr = this.$store.state.account.address;
     this.initData();
   },
   mounted() {},

@@ -218,7 +218,7 @@ export default {
       popupTitle: "",
       initCoinArr: [],
       clickNum: 0, //立即支付按钮
-      myAddress: "",
+      walletAddr: "",
       form: {
         value: "",
         addr: "",
@@ -236,10 +236,10 @@ export default {
   },
   created() {
     this.selChainId = this.$route.params.chainId;
-    this.myAddress = this.$store.state.account.address;
-    if (!this.myAddress) {
+    this.walletAddr = this.$store.state.account.address;
+    if (!this.walletAddr) {
       this.PopupAPI.getSelectedAccount().then(res => {
-        this.myAddress = res.address;
+        this.walletAddr = res.address;
       });
     }
     this.PopupAPI.getCurrency().then(res => {

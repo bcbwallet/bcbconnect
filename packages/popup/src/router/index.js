@@ -5,14 +5,14 @@ import Terms from "./../views/initializeWallet/terms.vue";
 import CreateWallet from "./../views/initializeWallet/createWallet.vue";
 import ImportWallet from "./../views/initializeWallet/importWallet.vue";
 import BackupMnemonic from "./../views/initializeWallet/backupMnemonic.vue";
-import BackupMnemonicWrite from "./../views/initializeWallet/backupMnemonicWrite.vue";
+import BackupMnemonicWriting from "./../views/initializeWallet/backupMnemonicWriting.vue";
 
 import Main from "./../views/mainInterface/main.vue";
 import WalletDetail from "./../views/mainInterface/wallet/walletDetail.vue";
 import AssetsDetail from "./../views/mainInterface/transaction/assetsDetail.vue";
 import AddCoin from "./../views/mainInterface/transaction/addCoin.vue";
 import Transfer from "./../views/mainInterface/transaction/transfer.vue";
-import Receipt from "./../views/mainInterface/transaction/receipt.vue";
+import Receive from "./../views/mainInterface/transaction/receive.vue";
 import ChangePwd from "./../views/mainInterface/setting/changePwd.vue";
 import selectNode from "./../views/mainInterface/setting/selectNode.vue";
 import autoSign from "./../views/mainInterface/setting/autoSign.vue";
@@ -53,9 +53,9 @@ export default new Router({
       component: BackupMnemonic
     },
     {
-      path: "/backupMnemonicWrite",
-      name: "backupMnemonicWrite",
-      component: BackupMnemonicWrite
+      path: "/backupMnemonicWriting",
+      name: "backupMnemonicWriting",
+      component: BackupMnemonicWriting
     },
 
     {
@@ -84,9 +84,9 @@ export default new Router({
       component: Transfer
     },
     {
-      path: "/receipt",
-      name: "receipt",
-      component: Receipt
+      path: "/receive",
+      name: "receive",
+      component: Receive
     },
     {
       path: "/changePwd",

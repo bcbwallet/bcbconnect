@@ -334,6 +334,7 @@ export default {
                     iconClass: 'mintui mintui-success'
                 });
                 _this.formAll.walletName = '';
+                this.$router.push('/main');
             });
         },
         importWallet() {

@@ -8,7 +8,7 @@ export default new Vuex.Store({
     accounts: [], //钱包列表
     account: {}, //我的钱包信息
     appState: -1, //流程状态
-    myAddress: "", //主界面显示使用address
+    walletAddr: "", //主界面显示使用address
     hostname: "",
     fromCreatePage: false
   },

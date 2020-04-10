@@ -369,9 +369,10 @@ export default {
           _this.$router.push("/main");
         }).catch(err => {
           _this.langArr = false;
-          Toast({
-            message: this.$t('lang.importWallet.privateKeyError')
-          });
+          // Toast({
+          //   message: this.$t('lang.importWallet.privateKeyError')
+          // });
+          Toast({ message: err});
         });
       } else {
         if (!_this.form.textInput) {
@@ -415,9 +416,10 @@ export default {
           _this.$router.push("/main");
         }).catch(err => {
           _this.langArr = false;
-          Toast({
-            message: this.$t('lang.importWallet.keystoreOrPwdError')
-          });
+          // Toast({
+          //   message: this.$t('lang.importWallet.keystoreOrPwdError')
+          // });
+          Toast({ message: err});
         });
       }
     }

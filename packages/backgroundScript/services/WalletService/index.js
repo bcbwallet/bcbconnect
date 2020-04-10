@@ -582,6 +582,16 @@ class Wallet extends EventEmitter {
         return true;
     }
 
+    _accountExists(address) {
+        let keys = Object.keys(this.accounts);
+        for (let i = 0; i < keys.length; i++) {
+            if (this.accounts[keys[i]].address === address) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // This and the above func should be merged into one
     /**
      *
@@ -599,9 +609,9 @@ class Wallet extends EventEmitter {
             privateKey
         );
 
-        const {
-            address
-        } = account;
+        if (this._accountExists(account.address)) {
+            return Promise.reject('Account exists');
+        }
 
         account.name = name;
         // if(Object.keys(this.accounts).length === 0) {
@@ -628,10 +638,6 @@ class Wallet extends EventEmitter {
             ACCOUNT_TYPE.MNEMONIC,
             mnemonic
         );
-
-        const {
-            address
-        } = account;
 
         account.name = name;
         // if(Object.keys(this.accounts).length === 0) {
@@ -662,9 +668,9 @@ class Wallet extends EventEmitter {
             wallet.privateKey,
         );
 
-        const {
-            address
-        } = account;
+        if (this._accountExists(account.address)) {
+            return Promise.reject('Account exists');
+        }
 
         account.name = name;
 

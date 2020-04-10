@@ -1,5 +1,5 @@
 <template>
-  <div class="receipt pos-r">
+  <div class="receive pos-r">
     <div class="back pos-a flex flex-ai-c cur-p" @click="back">
       <img src="../../../assets/images/open/back.png" />
       <span class="color999">{{ $t('lang.createWallet.back') }}</span>
@@ -8,7 +8,7 @@
       <canvas id="canvas" class="canvas m-auto db"></canvas>
     </div>
     <div class="r-addr flex flex-ai-c bgfff m-auto cur-p" @click="doCopy">
-      <p class="fs12">{{ myAddress }}</p>
+      <p class="fs12">{{ walletAddr }}</p>
       <img src="../../../assets/images/main/copy.png" />
     </div>
     <div class="input-line flex flex-ai-c m-auto">
@@ -40,22 +40,22 @@ import VueClipboard from "vue-clipboard2";
 Vue.use(VueClipboard);
 
 export default {
-  name: "receipt",
+  name: "receive",
   data() {
     return {
-      myAddress: "",
+      walletAddr: "",
       token:"",
       value: "",
       BCBSCAN: process.env.VUE_APP_BCBSCAN
     };
   },
   created() {
-    this.myAddress = this.$store.state.account.address;
-    if (this.myAddress === "") {
-      this.myAddress = this.$t('lang.main.noAddress');
+    this.walletAddr = this.$store.state.account.address;
+    if (this.walletAddr === "") {
+      this.walletAddr = this.$t('lang.main.noAddress');
     }
     this.token = this.$store.state.token;
-    // this.qrcode(this.myAddress);
+    // this.qrcode(this.walletAddr);
   },
   mounted() {
     this.qrcode(this.populateText());
@@ -71,7 +71,7 @@ export default {
       });
     },
     doCopy() {
-      this.$copyText(this.myAddress).then(() => {
+      this.$copyText(this.walletAddr).then(() => {
         Toast({
           message: this.$t('lang.main.copySuccess'),
           position: "top",
@@ -80,7 +80,7 @@ export default {
       });
     },
     populateText() {
-      let text = 'bcbpay://' + this.token + '/' + this.myAddress + '/';
+      let text = 'bcbpay://' + this.token + '/' + this.walletAddr + '/';
       if (this.value === "") {
         text += '*'
       } else {
@@ -108,7 +108,7 @@ export default {
 };
 </script>
 <style lang="stylus">
-.receipt
+.receive
 	.qrcode
 		padding-top: 89px
 		margin-bottom:40px

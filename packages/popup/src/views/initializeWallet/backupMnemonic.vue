@@ -69,7 +69,7 @@ export default {
     },
     gotoNext() {
       this.$router.push({
-        name: "backupMnemonicWrite",
+        name: "backupMnemonicWriting",
         params: { type: this.$route.params.type, mnemonic: this.initMenic }
       });
     }

@@ -55,7 +55,7 @@
 <script>
 import { Toast } from "mint-ui";
 export default {
-  name: "backupMnemonicWrite",
+  name: "backupMnemonicWriting",
   data() {
     return {
       ciArr: [],
