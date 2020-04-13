@@ -1,5 +1,6 @@
 import StorageService from '../StorageService';
 import Logger from '@bcblink/lib/logger';
+import { ERRORS, ErrorHandler } from '@bcblink/lib/errors';
 
 import '@bcblink/lib/bcbjs';
 
@@ -8,6 +9,7 @@ import {
 } from '@bcblink/lib/constants';
 
 const logger = new Logger('WalletService/Account');
+
 class Account {
     constructor(network, accountType, importData, accountIndex = 0) {
         this.network = network;
@@ -28,7 +30,7 @@ class Account {
 
     _importMnemonic(mnemonic, accountIndex) {
         if (!this.network) {
-            return Promise.reject('Network not set');
+            ErrorHandler.throwError({ code: ERRORS.INVALID_PARAMS, data: 'Network not set' });
         }
         try {
             // this.mnemonic = mnemonic;
@@ -37,20 +39,20 @@ class Account {
             this.privateKey = wallet.privateKey;
             this.address = wallet.address;
         } catch (err) {
-            return Promise.reject('INVALID_MNEMONIC');
+            ErrorHandler.throwError(ERRORS.INVALID_MNEMONIC);
         }
     }
 
     _importPrivateKey(privateKey) {
         if (!this.network) {
-            return Promise.reject('Network not set');
+            ErrorHandler.throwError({ code: ERRORS.INVALID_PARAMS, data: 'Network not set' });
         }
         try {
             this.privateKey = privateKey;
             let wallet = new bcbjs.Wallet(privateKey, this.network);
             this.address = wallet.address;
         } catch (err) {
-            return Promise.reject('INVALID_PRIVATE_KEY');
+            ErrorHandler.throwError(ERRORS.INVALID_PRIVATE_KEY);
         }
     }
 

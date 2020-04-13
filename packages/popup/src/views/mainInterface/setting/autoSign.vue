@@ -74,7 +74,7 @@ export default {
           : this.$t('lang.connect.noAutoSign');
     }).catch(err => {
       Toast({
-        message: err
+        message: err.message
       });
     });
   },

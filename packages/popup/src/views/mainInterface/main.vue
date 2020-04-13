@@ -569,7 +569,9 @@ export default {
 
                 await this.getAutoSignSettings();
             } catch (err) {
-                Toast({message: err});
+                Toast({
+                    message: err.message
+                });
             }
         },
         async getAutoSignSettings() {
@@ -587,7 +589,9 @@ export default {
                     ? this.$t('lang.connect.autoSignForOneDay')
                     : this.$t('lang.connect.noAutoSign');
             } catch (err) {
-                Toast({message: err});
+                Toast({
+                    message: err.message
+                });
             }
         },
         async getAccounts() {
@@ -663,7 +667,7 @@ export default {
                 // _this.$router.push('/open/fromMain')
             }).catch(err => {
                 Toast({
-                    message: err
+                    message: err.message
                 });
             });
         },
@@ -837,7 +841,7 @@ export default {
             try {
                 this.selectedNetwork = await this.PopupAPI.getSelectedChain();
             } catch (error) {
-                MessageBox.alert('Get selected chain error');
+                MessageBox.alert(error.message);
             }
         },
         // 打开网络树形结构组件

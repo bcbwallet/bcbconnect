@@ -39,7 +39,7 @@ export default {
                 }
             } catch (error) {
                 console.log('addAsset error:', error);
-                MessageBox.alert(error);
+                MessageBox.alert(error.message);
             }
         }
     },

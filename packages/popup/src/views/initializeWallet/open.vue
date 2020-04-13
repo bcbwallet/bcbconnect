@@ -172,7 +172,7 @@ export default {
     selLangEv(lang){
       let _this = this;
       _this.$i18n.locale = lang
-      _this.PopupAPI.setLanguage(lang).then(res => {});
+      _this.PopupAPI.setLanguage(lang);
       _this.langPopShow = false
     },
     initState(state) {
@@ -208,19 +208,18 @@ export default {
         return;
       }
       _this.isProcessing = true;
-      _this.PopupAPI.unlockWallet(this.psd)
-        .then(res => {
+      _this.PopupAPI.unlockWallet(this.psd).then(res => {
           // if(_this.hostname){
           // 	_this.PopupAPI.acceptConfirmation()
           // }
           _this.isProcessing = false;
           _this.$store.commit("SET_HOSTNAME", "");
           // _this.$router.push("/main");
-        })
-        .catch(err => {
+        }).catch(err => {
+          console.log('err', err);
           _this.isProcessing = false;
           Toast({
-            message: err
+            message: err.message
           });
         });
     },

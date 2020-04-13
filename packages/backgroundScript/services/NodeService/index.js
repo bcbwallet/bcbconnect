@@ -1,12 +1,13 @@
 import Logger from '@bcblink/lib/logger';
 import StorageService from '../StorageService';
 import UUID from 'uuid/v4';
-import axios from 'axios';
+import { Base64 } from 'js-base64';
 import { sha3_256 } from 'js-sha3';
-import { hexlify, arrayify, concat } from '@bcblink/lib/bytes';
-import { sleep } from '@bcblink/lib/common';
+import axios from 'axios';
 
-import { deepCopy } from '@bcblink/lib/common';
+import { hexlify, arrayify, concat } from '@bcblink/lib/bytes';
+import { deepCopy, sleep } from '@bcblink/lib/common';
+import { ERRORS, ErrorHandler } from '@bcblink/lib/errors';
 
 const logger = new Logger('NodeService');
 
@@ -173,14 +174,14 @@ const NodeService = {
                 return { network: splits[0], chain: splits[0] };
             }
         }
-        return Promise.reject(`Invalid chain id: ${chainId}`);
+        ErrorHandler.throwError({ code: ERRORS.WRONG_CHAIN_ID, data: chainId });
     },
 
     async _updateChainsOfNetwork(network) {
         logger.info(`update chains of network ${network}`);
 
         if (!(network in this.networks)) {
-            return Promise.reject(`Unknown network ${network}`);
+            ErrorHandler.throwError({ code: ERRORS.WRONG_NETWORK_ID, data: network });
         }
 
         let nodeUrl = this.networks[network].urls[0];
@@ -211,18 +212,11 @@ const NodeService = {
 
         this.updating = true;
         try {
-            let nodeUrl = await this.getSeedNodeUrl(this.network).catch(err => {
-                this.updating = false;
-                return Promise.reject(err);
-            });
+            let nodeUrl = await this.getSeedNodeUrl(this.network);
             let chainId = this.getChainId();
-            let urls = await this.getNodeUrls(nodeUrl, chainId).catch(err => {
-                this.updating = false;
-                return Promise.reject(err);
-            });
+            let urls = await this.getNodeUrls(nodeUrl, chainId);
             if (!Array.isArray(urls)) {
-                this.updating = false;
-                return Promise.reject(`Got no node for ${chainId}`);
+                ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: `Got no node for ${chainId}` });
             }
 
             let keepSelected = false;
@@ -252,16 +246,13 @@ const NodeService = {
             this.saveNodes();
 
             if (!keepSelected) {
-                await this._autoSelectNode().catch(err => {
-                    this.updating = false;
-                    return Promise.reject(err);
-                });
+                await this._autoSelectNode();
             }
 
             this.updating = false;
         } catch (err) {
             this.updating = false;
-            return Promise.reject(err);
+            throw err;
         }
     },
 
@@ -322,16 +313,13 @@ const NodeService = {
         logger.info('Add network', networkInfo); 
 
         let { name, url, chainId } = networkInfo;
-        if (!name) {
-            return Promise.reject('Empty network name');
-        }
-        if (!url) {
-            return Promise.reject('Empty node url');
+        if (!name || !url) {
+            errros.throwError({ code: ERRORS.INVALID_PARAMS, data: networkInfo });
         }
         let nodeInfo = await this.getNodeInfo(url);
         logger.info('Node info:', nodeInfo);
         if (chainId && chainId != nodeInfo.chainId) {
-            return Promise.reject('Chain id mismatch');
+            errros.throwError(errros.WRONG_CHAIN_ID);
         }
         let { network, chain } = this._splitChainId(nodeInfo.chainId);
         logger.info(`network: ${network}, chain: ${chain}`);
@@ -341,7 +329,7 @@ const NodeService = {
         }
         // Allow overide ?
         if (this.networks && this.networks.hasOwnProperty(network)) {
-            return Promise.reject(`Network ${network} exists`);
+            ErrorHandler.throwError(ERRORS.NETWORK_EXISTS);
         }
         this.networks[network] = { name, urls: [ url ] };
 
@@ -370,7 +358,7 @@ const NodeService = {
             if (chain == this.getMainChainId(this.network)) {
                 return this.fallbackToDefaultNodes();
             }
-            return Promise.reject(err);
+            throw err;
         });
     },
 
@@ -402,7 +390,7 @@ const NodeService = {
         logger.info(`Get chains of network ${network}`);
 
         if (!(network in this.networks)) {
-            return Promise.reject(`Unknown network ${network}`);
+            errros.throwError({ code: errros.WRONG_NETWORK_ID, data: `Unknown network ${network}` });
         }
         await this._updateChainsOfNetwork(network).catch(err => {
             logger.error(`Failed to update chains of network ${network}: ${err}`);
@@ -476,15 +464,16 @@ const NodeService = {
         let chainId = this.getChainId();
         // let nodeInfo = await this.getNodeInfo(node.url);
         // if (chainId !== nodeInfo.chainId) {
-        //     return Promise.reject('Chain id mismatch');
+        //     ErrorHandler.throwError(ERRORS.WRONG_CHAIN_ID);
         // }
         node = { ...node, chainId, source: 'user' };
         this._saveNode(node);
     },
 
     deleteNode(nodeId) {
-        if (nodeId === this.selectedNode)
-            return Promise.reject('Cannot delete selected node')
+        if (nodeId === this.selectedNode) {
+            ErrorHandler.throwError({ code: ERRORS.INVALID_PARAMS, data: 'Cannot delete selected node' });
+        }
         delete this.nodes[ nodeId ];
         this.saveNodes();
         return true;
@@ -496,7 +485,7 @@ const NodeService = {
 
     getDefaultNodeUrl(networkId) {
         if (!(networkId in publicNetworks)) {
-            return Promise.reject(`No default node for ${networkId}`);
+            ErrorHandler.throwError({ code: ERRORS.WRONG_NETWORK_ID, data: `No default node for ${networkId}` });
         }
         return publicNetworks[networkId].urls[0];
     },
@@ -517,7 +506,7 @@ const NodeService = {
                     let urls = await this.getNodeUrls(url, this.getChainId());
                     let nodeInfo = await this.getNodeInfo(urls[0]);
                     if (!nodeInfo.mainUrls || !nodeInfo.mainUrls.length) {
-                        return Promise.reject('No mainUrls');
+                        ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: 'No mainUrls' });
                     }
                     return nodeInfo.mainUrls[0];
                 }
@@ -528,7 +517,7 @@ const NodeService = {
         if (url) {
             return url;
         } else {
-            return Promise.reject(`No default node for network: ${this.network}`);
+            ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: `No default node for network: ${this.network}` })
         }
     },
 
@@ -553,29 +542,33 @@ const NodeService = {
         }
     },
 
-    _nodeErrorToString(error) {
-        let errMsg = '';
-        if (typeof error.code !== 'undefined') {
-            errMsg += '[' + error.code + ']';
-        }
-        if (error.message) {
-            errMsg += error.message;
-        }
-        if (error.data) {
-            errMsg += ' -- ' + error.data;
-        }
-        return errMsg;
+    _nodeError(error) {
+        let { code, message, data } = error;
+        return { code, message, data, source: 'node' };
     },
 
-    _nodeTxErrorToString(error) {
-        let errMsg = '';
-        if (typeof error.code !== 'undefined') {
-            errMsg += '[' + error.code + ']';
+    _nodeTxError(error) {
+        let { code, log } = error;
+        return { code, message: log, data: error, source: 'node:tx' };
+    },
+
+    _checkResponseThrowsError(resp) {
+        if (resp.error) {
+            ErrorHandler.throwError(this._nodeError(resp.error));
         }
-        if (error.log) {
-            errMsg += error.log;
+        if (!resp.result) {
+            ErrorHandler.throwError({ code: SERVER_ERROR, data: resp });
         }
-        return errMsg;
+    },
+
+    _getSelectedNodeUrl() {
+        if (!this.selectedNode) {
+            ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'No node selected' });
+        }
+        if (!this.nodes[this.selectedNode] || !this.nodes[this.selectedNode].url) {
+            ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'No node url' });
+        }
+        return this.nodes[this.selectedNode].url;
     },
 
     _setNodeStats(url, key, value) {
@@ -590,41 +583,42 @@ const NodeService = {
         }
     },
 
-    async _nodeRequest(url, data = false) {
+    async _request(url, data = false) {
         // logger.info(`request ${url}`);
         return new Promise((resolve, reject) => {
             let axioMethod = data ? axios.post : axios.get;
-            axioMethod(url, data).then(result => {
-                if (result.status == 200) {
-                    resolve(result.data);
+            axioMethod(url, data).then(resp => {
+                if (resp.status == 200) {
+                    resolve(resp.data);
                 } else {
-                    logger.info(`HTTP response ${result.status} -- ${url}`);
-                    reject('Server error');
+                    logger.info(`HTTP response ${resp.status} -- ${url}`);
+                    reject({ code: SERVER_ERROR, data: `HTTP response ${resp.status} -- ${url}` })
                 }
             }).catch (err => {
                 logger.info(`Node request error: ${err}`);
-                reject('Network error');
+                reject({ code: ERRORS.NETWORK_ERROR, data: err });
             });
         });
     },
 
-    async nodeRequest(url, data = false) {
+    async nodeRequest(path, data = false) {
+        let nodeUrl = this._getSelectedNodeUrl();
         let start = Date.now();
-        let result = await this._nodeRequest(url, data).catch(err => {
-            let failure = this._getNodeStats(url, 'failure');
+        let resp = await this._request(nodeUrl + path, data).catch(err => {
+            let failure = this._getNodeStats(nodeUrl, 'failure');
             if (!failure) failure = 0;
             failure++;
-            this._setNodeStats(url, 'failure', failure);
+            this._setNodeStats(nodeUrl, 'failure', failure);
             if (failure >= 3) {
                 this._switchNode();
             }
-            return Promise.reject(err);
+            ErrorHandler.throwError(err);
         });
-        this._setNodeStats(url, 'latency', Date.now() - start);
-        if (!result) {
-            return Promise.reject('No result from node');
+        this._setNodeStats(nodeUrl, 'latency', Date.now() - start);
+        if (!resp) {
+            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: 'No response from node' });
         }
-        return result;
+        return resp;
     },
 
     async getNodeInfo(nodeUrl) {
@@ -634,23 +628,23 @@ const NodeService = {
         // if (nodeInfo) {
         //     return nodeInfo;
         // }
-        let result = await this._nodeRequest(
+        let resp = await this._request(
             nodeUrl + '/genesis'
         );
-        if (result.error) {
-            return Promise.reject(this._nodeErrorToString(result.error));
-        }
-        if (!result.result || !result.result.genesis
-            || !result.result.genesis.app_state.token) {
-            return Promise.reject('Node genesis query error');
+        this._checkResponseThrowsError(resp);
+
+        let result = resp.result;
+        if (!result.genesis
+            || !result.genesis.app_state.token) {
+            ErrorHandler.throwError({ code: SERVER_ERROR, data: resp });
         }
         let nodeInfo = {
-            chainId: result.result.genesis.chain_id,
-            token: result.result.genesis.app_state.token
+            chainId: result.genesis.chain_id,
+            token: result.genesis.app_state.token
         };
         let mainUrls;
-        if (result.result.genesis.app_state.mainChain) {
-            mainUrls = result.result.genesis.app_state.mainChain.openUrls;
+        if (result.genesis.app_state.mainChain) {
+            mainUrls = result.genesis.app_state.mainChain.openUrls;
             nodeInfo.mainUrls = mainUrls;
             nodeInfo.isSideChain = true;
         }
@@ -663,7 +657,7 @@ const NodeService = {
         logger.info(`Get token info of network ${network}`);
 
         if (!(network in this.networks)) {
-            return Promise.reject(`Unknown network ${network}`);
+            ErrorHandler.throwError({ code: INTERNEL_ERROR, data: `Unknown network ${network}` });
         }
         let nodeUrl = this.networks[network].urls[0];
         let nodeInfo = await this.getNodeInfo(nodeUrl);
@@ -671,188 +665,160 @@ const NodeService = {
     },
 
     async getChainIds(nodeUrl) {
-        let result = await this._nodeRequest(
+        let resp = await this._request(
             nodeUrl + '/abci_query?path="/sidechain/chainid/all"'
         );
-        if (result.error) {
-            return Promise.reject(this._nodeErrorToString(result.error));
+        this._checkResponseThrowsError(resp);
+
+        let result = resp.result;
+        if (!result.response
+            || result.response.code != 200
+            || typeof result.response.value === undefined) {
+            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
         }
-        if (!result.result || !result.result.response || result.result.response.code != 200) {
-            return Promise.reject('Node abci query error');
-        }
-        let response = result.result.response;
-        if (response.hasOwnProperty('value')) {
-            let value = Base64.decode(response.value);
-            let result = JSON.parse(value);
-            // console.log(result)
-            return result;
-        }
+        let value = Base64.decode(result.response.value);
+        value = JSON.parse(value);
+        // console.log(value)
+        return value;
     },
 
     async getNodeUrls(nodeUrl, chainId) {
-        let result = await this._nodeRequest(
+        let resp = await this._request(
             nodeUrl + '/abci_query?path="/sidechain/' + chainId + '/openurls"'
         );
-        if (result.error) {
-            return Promise.reject(this._nodeErrorToString(result.error));
+        this._checkResponseThrowsError(resp);
+
+        let result = resp.result;
+        if (!result.response
+            || result.response.code != 200
+            || typeof result.response.value === undefined) {
+            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
         }
-        if (!result.result || !result.result.response || result.result.response.code != 200) {
-            return Promise.reject('Node abci query error');
-        }
-        let response = result.result.response;
-        if (response.hasOwnProperty('value')) {
-            let value = Base64.decode(response.value);
-            let result = JSON.parse(value);
-            // console.log(result)
-            return result;
-        }
+        let value = Base64.decode(result.response.value);
+        value = JSON.parse(value);
+        // console.log(value)
+        return value;
     },
 
     async getTransactionCount(address) {
         if (!address) {
-            return Promise.reject('No address provided');
+            ErrorHandler.throwError(ERRORS.INVALID_PARAMS);
         }
-        if (!this.selectedNode) {
-            return Promise.reject('No node selected');
-        }
-        let result = await this.nodeRequest(
-            this.nodes[this.selectedNode].url + '/abci_query?path="/account/ex/' + address + '/account"'
+
+        let resp = await this.nodeRequest(
+            '/abci_query?path="/account/ex/' + address + '/account"'
         );
-        if (result.error) {
-            return Promise.reject(this._nodeErrorToString(result.error));
+        this._checkResponseThrowsError(resp);
+
+        let result = resp.result;
+        if (!result.response
+            || result.response.code != 200) {
+            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
         }
-        if (!result.result || !result.result.response || result.result.response.code != 200) {
-            return Promise.reject('Node abci query error');
+        if (typeof result.response.value === undefined) {
+            return 0;
         }
-        let response = result.result.response;
-        let nonce = 0;
-        if (response.hasOwnProperty('value')) {
-            let value = Base64.decode(response.value);
-            let result = JSON.parse(value);
-            nonce = result.Nonce;
-        }
-        // console.log(nonce)
-        return nonce;
+        let value = Base64.decode(result.response.value);
+        value = JSON.parse(value);
+        // console.log(value)
+        return value.Nonce;
     },
 
     async getBalance(address, tokenAddress) {
-        if (!address) {
-            return Promise.reject('No address provided');
+        if (!address || !tokenAddress) {
+            ErrorHandler.throwError(errros.INVALID_PARAMS);
         }
-        if (!tokenAddress) {
-            return Promise.reject('No token address provided');
-        }
-        if (!this.selectedNode) {
-            return Promise.reject('No node selected');
-        }
-        let result = await this.nodeRequest(
-            this.nodes[this.selectedNode].url + '/abci_query?path="/account/ex/' + address + '/token/' + tokenAddress + '"'
+
+        let resp = await this.nodeRequest(
+            '/abci_query?path="/account/ex/' + address + '/token/' + tokenAddress + '"'
         );
-        if (result.error) {
-            return Promise.reject(this._nodeErrorToString(result.error));
+        this._checkResponseThrowsError(resp);
+
+        let result = resp.result;
+        if (!result.response
+            || result.response.code != 200) {
+            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
         }
-        if (!result.result || !result.result.response || result.result.response.code != 200) {
-            return Promise.reject('Node abci query error');
+        if (typeof result.response.value === undefined) {
+            return 0;
         }
-        let response = result.result.response;
-        let balance = 0;
-        if (response.hasOwnProperty('value')) {
-            let value = Base64.decode(response.value);
-            let result = JSON.parse(value);
-            balance = result.balance;
-        }
-        // console.log(balance)
-        return balance;
+        let value = Base64.decode(result.response.value);
+        value = JSON.parse(value);
+        // console.log(value)
+        return value.balance;
     },
 
     async getTokenAddressBySymbol(symbol) {
         if (!symbol) {
-            return Promise.reject('No symbol provided');
+            ErrorHandler.throwError(errros.INVALID_PARAMS);
         }
-        if (!this.selectedNode) {
-            return Promise.reject('No node selected');
-        }
+
         symbol = symbol.toLowerCase();
         let tokenAddress = this._getTokenAddressCache(symbol);
         if (tokenAddress) {
             return tokenAddress;
         }
-        let result = await this.nodeRequest(
-            this.nodes[this.selectedNode].url + '/abci_query?path="/token/symbol/' + symbol + '"'
+        let resp = await this.nodeRequest(
+            '/abci_query?path="/token/symbol/' + symbol + '"'
         );
-        if (result.error) {
-            return Promise.reject(this._nodeErrorToString(result.error));
+        this._checkResponseThrowsError(resp);
+
+        let result = resp.result;
+        if (!result.response
+            || result.response.code != 200
+            || typeof result.response.value === undefined) {
+            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
         }
-        if (!result.result || !result.result.response || result.result.response.code != 200) {
-            return Promise.reject('Node abci query error');
-        }
-        let response = result.result.response;
-        if (response.hasOwnProperty('value')) {
-            let value = Base64.decode(response.value);
-            tokenAddress = JSON.parse(value);
-            // console.log(tokenAddress)
-            this._saveTokenAddressCache(symbol, tokenAddress);
-            return tokenAddress;
-        } else {
-            return Promise.reject('No value in response');
-        }
+        let value = Base64.decode(result.response.value);
+        value = JSON.parse(value);
+        // console.log(value)
+        this._saveTokenAddressCache(symbol, value);
+        return value;
     },
 
     async getTokenSymbolByAddress(tokenAddress) {
         if (!tokenAddress) {
-            return Promise.reject('No token address provided');
+            ErrorHandler.throwError(ERRORS.INVALID_PARAMS);
         }
-        if (!this.selectedNode) {
-            return Promise.reject('No node selected');
-        }
+
         let tokenSymbol = this._getTokenSymbolCache(tokenAddress);
         if (tokenSymbol) {
             return tokenSymbol;
         }
-        let result = await this.nodeRequest(
-            this.nodes[this.selectedNode].url + '/abci_query?path="/token/' + tokenAddress + '"'
+        let resp = await this.nodeRequest(
+            '/abci_query?path="/token/' + tokenAddress + '"'
         );
-        if (result.error) {
-            return Promise.reject(this._nodeErrorToString(result.error));
-        }
-        if (!result.result || !result.result.response || result.result.response.code != 200) {
-            return Promise.reject('Node abci query error');
-        }
-        let response = result.result.response;
-        if (response.hasOwnProperty('value')) {
-            let value = Base64.decode(response.value);
-            let result = JSON.parse(value);
-            tokenSymbol = result.symbol;
-            this._saveTokenSymbolCache(tokenAddress, tokenSymbol)
-            return tokenSymbol;
-        } else {
-            return Promise.reject('No value in response');
-        }
+        this._checkResponseThrowsError(resp);
 
+        let result = resp.result;
+        if (!result.response
+            || result.response.code != 200
+            || typeof result.response.value === undefined) {
+            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
+        }
+        let value = Base64.decode(result.response.value);
+        value = JSON.parse(value);
+        tokenSymbol = value.symbol;
+        this._saveTokenSymbolCache(tokenAddress, tokenSymbol)
+        return tokenSymbol;
     },
 
     async broadcastTransaction(signedTx) {
         if (!signedTx) {
-            return Promise.reject('No signed transaction provided');
+            ErrorHandler.throwError(ERRORS.INVALID_PARAMS);
         }
-        if (!this.selectedNode) {
-            return Promise.reject('No node selected');
-        }
-        let result = await this.nodeRequest(
-            this.nodes[this.selectedNode].url + '/broadcast_tx_commit?tx="' + signedTx + '"'
+
+        let resp = await this.nodeRequest(
+            '/broadcast_tx_commit?tx="' + signedTx + '"'
         );
-        if (result.error) {
-            return Promise.reject(this._nodeErrorToString(result.error));
+        this._checkResponseThrowsError(resp);
+
+        let result = resp.result;
+        if (result.check_tx && result.check_tx.code != 200) {
+            ErrorHandler.throwError(this._nodeTxError(result.check_tx));
         }
-        if (!result.result) {
-            return Promise.reject('No result in response');
-        }
-        let response = result.result;
-        if (response.check_tx && response.check_tx.code != 200) {
-            return Promise.reject(this._nodeTxErrorToString(response.check_tx));
-        }
-        if (response.deliver_tx && response.deliver_tx.code == 200) {
-            return response.deliver_tx.tx_hash;
+        if (result.deliver_tx && result.deliver_tx.code == 200) {
+            return result.deliver_tx.tx_hash;
         }
         let hash = hexlify(sha3_256.update(signedTx).digest());
         await sleep(1000);
@@ -860,46 +826,33 @@ const NodeService = {
         if (success) {
             return hash.substring(2);
         }
-        if (!response.deliver_tx) {
-            return Promise.reject('No deliver_tx in response');
-        }
-        return Promise.reject(this._nodeTxErrorToString(response.deliver_tx));
     },
 
     async checkTransactionStatus(hash) {
         if (!hash) {
-            return Promise.reject('No hash provided');
+            ErrorHandler.throwError(ERRORS.INVALID_PARAMS);
         }
         hash = hash.toLowerCase();
         if (hash.substring(0, 2) == '0x') {
             hash = hash.substring(2);
         }
-        if (!this.selectedNode) {
-            return Promise.reject('No node selected');
-        }
-        let result = await this.nodeRequest(
-            this.nodes[this.selectedNode].url + '/tx?hash="' + hash + '"'
+
+        let resp = await this.nodeRequest(
+            '/tx?hash="' + hash + '"'
         );
-        if (result.error) {
-            return Promise.reject(this._nodeErrorToString(result.error));
+        this._checkResponseThrowsError(resp);
+    
+        let result = resp.result;
+        if (!result.deliver_tx) {
+            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
         }
-        if (!result.result) {
-            return Promise.reject('No result in response');
-        }
-        let response = result.result;
-        if (response.deliver_tx && response.deliver_tx.code == 200) {
+        if (result.deliver_tx && result.deliver_tx.code == 200) {
             return true;
         }
-        if (!response.deliver_tx) {
-            return Promise.reject('No deliver_tx in response');
-        }
-        return Promise.reject(this._nodeTxErrorToString(response.deliver_tx));
+        ErrorHandler.throwError(this._nodeTxError(result.deliver_tx));
     },
 
     async getTransactionCost(calls) {
-        if (!this.selectedNode) {
-            return Promise.reject('No node selected');
-        }
         let cost = [];
         calls.forEach((call) => {
             if (call.type === 'standard') {

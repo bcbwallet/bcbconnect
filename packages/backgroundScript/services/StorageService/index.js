@@ -1,6 +1,8 @@
 import extensionizer from 'extensionizer';
 import Logger from '@bcblink/lib/logger';
 import Utils from '@bcblink/lib/utils';
+import { ERRORS, ErrorHandler } from '@bcblink/lib/errors';
+
 const logger = new Logger('StorageService');
 
 const StorageService = {
@@ -81,12 +83,13 @@ const StorageService = {
 
     async unlock(password) {
         if(this.ready) {
-            logger.error('Attempted to decrypt data whilst already unencrypted');
-            return Promise.reject('ERRORS.ALREADY_UNLOCKED');
+            logger.warn('Attempted to decrypt data whilst already unencrypted');
+            return true;
+            // ErrorHandler.throwError(ERRORS.NOT_LOCKED);
         }
 
         if(!await this.dataExists()) {
-            return Promise.reject('ERRORS.NOT_SETUP');
+            ErrorHandler.throwError(ERRORS.NOT_SETUP);
         }
 
         this.reset();
@@ -106,7 +109,7 @@ const StorageService = {
             }
         } catch (err) {
             logger.warn(`Failed to decrypt wallet ${err}`);
-            return Promise.reject('ERRORS.INVALID_PASSWORD');
+            ErrorHandler.throwError(ERRORS.WRONG_PASSWORD);
         }
 
         logger.info('Decrypted wallet data');

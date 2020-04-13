@@ -124,7 +124,7 @@ export default {
       }).catch(err => {
         console.log('changePwd err', err)
         Toast({
-          message: err
+          message: err.message
         });
       });
     }

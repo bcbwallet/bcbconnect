@@ -96,7 +96,7 @@ export default {
         });
         return;
       }
-      this.PopupAPI.setSettings({ mnemSaved: true }).then(res => {});
+      this.PopupAPI.setSettings({ mnemSaved: true });
       this.$router.push("/main");
     },
     selItem(item, index, event) {

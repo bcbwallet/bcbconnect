@@ -106,10 +106,8 @@ export default {
         this.loading = false;
       } catch (err) {
         this.loading = false;
-        if (err == 'NO_WALLET_PROVIDER') {
-        }
         Toast({
-          message: err
+          message: err.message
         });
       }
     },

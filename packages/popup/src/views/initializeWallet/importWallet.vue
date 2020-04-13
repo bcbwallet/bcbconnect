@@ -199,7 +199,7 @@ export default {
 		try {
 			this.selectedNetwork = await this.PopupAPI.getSelectedChain();
 		} catch (error) {
-			MessageBox.alert('Get selected chain error');
+			MessageBox.alert(error.message);
 		}
     },
     // 打开网络树形结构组件
@@ -289,14 +289,14 @@ export default {
                 }).catch(err => {
 				          console.log('importMnemonic error:', err);
                   Toast({
-                    message: err
+                    message: err.message
                   });
                 });
               }).catch(err => {
 				        console.log('setPassword error:', err);
                 _this.langArr = false;
                 Toast({
-                  message: err
+                  message: err.message
                 });
               });
             } else {
@@ -308,7 +308,7 @@ export default {
             }
           }).catch(err => {
             Toast({
-              message: err
+              message: err.message
             });
           });
         } else {
@@ -322,7 +322,7 @@ export default {
                   _this.PopupAPI.setSettings({ mnemSaved: true }).then(res => {});
               }).catch(err => {
                 Toast({
-                  message: err
+                  message: err.message
                 });
               });
             } else {
@@ -372,7 +372,7 @@ export default {
           // Toast({
           //   message: this.$t('lang.importWallet.privateKeyError')
           // });
-          Toast({ message: err});
+          Toast({ message: err.message });
         });
       } else {
         if (!_this.form.textInput) {
@@ -419,7 +419,7 @@ export default {
           // Toast({
           //   message: this.$t('lang.importWallet.keystoreOrPwdError')
           // });
-          Toast({ message: err});
+          Toast({ message: err.message });
         });
       }
     }

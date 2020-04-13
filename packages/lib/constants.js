@@ -31,4 +31,8 @@ export const CONFIRMATION_TYPE = {
     TRANSACTION: 1
 };
 
+export const LANGUAGES = [
+    'en-US',
+    'zh-CN'
+];
 

@@ -48,7 +48,7 @@ export default {
                 }
             } catch (error) {
                 console.log('addNetwork error:', error);
-                MessageBox.alert(error);
+                MessageBox.alert(error.message);
                 this.isLoading = false;
             }
         }

@@ -6,6 +6,7 @@ import WalletProvider from './WalletProvider';
 import Account from './Account';
 
 import '@bcblink/lib/bcbjs';
+import { ERRORS, ErrorHandler } from '@bcblink/lib/errors';
 import { deepCopy } from '@bcblink/lib/common';
 import { getMainAddress, getChainAddress } from '@bcblink/lib/address';
 import extensionizer from 'extensionizer';
@@ -14,7 +15,8 @@ import UUID from 'uuid/v4';
 import {
     APP_STATE,
     ACCOUNT_TYPE,
-    CONFIRMATION_TYPE
+    CONFIRMATION_TYPE,
+    LANGUAGES
 } from '@bcblink/lib/constants';
 
 const logger = new Logger('WalletService');
@@ -29,6 +31,7 @@ class Wallet extends EventEmitter {
         super();
 
         // Keep on reset
+        this.language = false;
         this.state = APP_STATE.UNINITIALISED;
 
         this.reset();
@@ -89,11 +92,21 @@ class Wallet extends EventEmitter {
         return appState;
     }
 
+    async _loadSettings() {
+        const language = await StorageService.getLanguage();
+        if (language) {
+            this.language = language;
+            this.emit('setLanguage', language);
+        }
+
+        await this._loadChainSettings();
+    }
+
     async _loadAssets() {
         logger.info('Load assets');
 
         if (!this.network) {
-            return Promise.reject('Network not set');
+            ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'Network not set' });
         }
         const allAssets = StorageService.getAssets();
         if (allAssets[this.network] && Object.keys(allAssets[this.network]).length) {
@@ -263,6 +276,20 @@ class Wallet extends EventEmitter {
         return this._setState(APP_STATE.READY);
     }
 
+    isReady() {
+        return this.state !== APP_STATE.UNINITIALISED
+            && this.state !== APP_STATE.PASSWORD_SET;
+    }
+
+    checkReadyThrowsError() {
+        if (this.state === APP_STATE.UNINITIALISED) {
+            ErrorHandler.throwError(ERRORS.NOT_SETUP);
+        }
+        if (this.state === APP_STATE.PASSWORD_SET) {
+            ErrorHandler.throwError(ERRORS.NOT_UNLOCKED);
+        }
+    }
+
     async purgeData(password) {
         await StorageService.purge();
         this.reset();
@@ -271,15 +298,12 @@ class Wallet extends EventEmitter {
 
     async setPassword(password) {
         if(this.state !== APP_STATE.UNINITIALISED && this.state !== APP_STATE.PASSWORD_SET) {
-            return Promise.reject('WRONG_APP_STATE');
+            ErrorHandler.throwError(ERRORS.WRONG_APP_STATE);
         }
 
         StorageService.authenticate(password);
 
-        await this._loadChainSettings().catch(err => {
-            logger.warn('Load chain settings failed:', err);
-            return Promise.reject(err);
-        });
+        await this._loadSettings();
 
         StorageService.save();
 
@@ -290,11 +314,11 @@ class Wallet extends EventEmitter {
 
     async changePassword({ oldPassword, newPassword }) {
         if(!StorageService.ready) {
-            return Promise.reject('NOT_UNLOCKED');
+            ErrorHandler.throwError(ERRORS.NOT_UNLOCKED);
         }
 
         if (oldPassword !== StorageService.password) {
-            return Promise.reject('WRONG_PASSWORD');
+            ErrorHandler.throwError(ERRORS.WRONG_PASSWORD);
         }
 
         StorageService.authenticate(newPassword);
@@ -310,13 +334,13 @@ class Wallet extends EventEmitter {
 
         if(this.state !== APP_STATE.PASSWORD_SET) {
             logger.error('Attempted to unlock wallet whilst not in PASSWORD_SET state');
-            return Promise.reject('NOT_LOCKED');
+            ErrorHandler.throwError(ERRORS.NOT_LOCKED);
         }
 
         await StorageService.unlock(password).catch(err => {
             logger.error(`Failed to unlock wallet: ${err}`);
-            return Promise.reject('WRONG_PASSWORD');
-        })
+            ErrorHandler.throwError(ERRORS.WRONG_PASSWORD);
+        });
 
         if(!StorageService.hasAccounts) {
             logger.info('Wallet does not have any accounts');
@@ -324,15 +348,9 @@ class Wallet extends EventEmitter {
             return true;
         }
 
-        await this._loadChainSettings().catch(err => {
-            logger.warn(`Load chain settings failed: ${err}`);
-            return Promise.reject(err);
-        });
+        await this._loadSettings();
 
-        await this._loadAssets().catch(err => {
-            logger.warn(`Load assets failed: ${err}`);
-            return Promise.reject(err);
-        });
+        await this._loadAssets();
 
         this._loadAccounts();
         this.emit('setAccount', this.getAccountDetails(this.selectedAccount));
@@ -489,7 +507,7 @@ class Wallet extends EventEmitter {
 
         callback({
             success: false,
-            data: message || 'Confirmation declined by user',
+            data: ERRORS.newError(ERRORS.REQUEST_DECLINED),
             uuid
         });
 
@@ -506,7 +524,7 @@ class Wallet extends EventEmitter {
         }
         let accountIndex = StorageService.getAccountIndex();
         if (!Number.isInteger(accountIndex)) {
-            return Promise.reject('Account index corrupted');
+            ErrorHandler.throwError({ code: ERRORS.DATA_CORRUPT, data: 'Account index' });
         }
         accountIndex += 1;
         let account = new Account(
@@ -610,7 +628,7 @@ class Wallet extends EventEmitter {
         );
 
         if (this._accountExists(account.address)) {
-            return Promise.reject('Account exists');
+            ErrorHandler.throwError(ERRORS.ACCOUNT_EXISTS);
         }
 
         account.name = name;
@@ -669,7 +687,7 @@ class Wallet extends EventEmitter {
         );
 
         if (this._accountExists(account.address)) {
-            return Promise.reject('Account exists');
+            ErrorHandler.throwError(ERRORS.ACCOUNT_EXISTS);
         }
 
         account.name = name;
@@ -724,7 +742,7 @@ class Wallet extends EventEmitter {
 
         let { network, chain } = chainOpts;
         if (!network) {
-            return Promise.reject('Empty network');
+            ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'No network' });
         }
         if (!chain) {
             chain = network;
@@ -744,7 +762,7 @@ class Wallet extends EventEmitter {
             } else {
                 let nodeInfo = await NodeService.getNodeInfo(await NodeService.getSeedNodeUrl(network));
                 if (!nodeInfo || !nodeInfo.token || !nodeInfo.token.symbol) {
-                    return Promise.reject('No token info');
+                    ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'No token info' });
                 }
                 tokenSymbol = nodeInfo.token.symbol;
                 // tag as 'user, balance is requested from node
@@ -776,7 +794,7 @@ class Wallet extends EventEmitter {
         } catch(err) {
             // rollback
             await NodeService.selectChain({ network: this.network, chain: this.chain });
-            return Promise.reject(err);
+            throw err;
         }
     }
 
@@ -816,7 +834,7 @@ class Wallet extends EventEmitter {
     }
 
     getSelectedToken() {
-        return this.selectedToken ? this.selectedToken : '';
+        return this.selectedToken || '';
     }
 
     setCurrency(currency) {
@@ -826,7 +844,7 @@ class Wallet extends EventEmitter {
     }
 
     getCurrency() {
-        return this.currency ? this.currency : '';
+        return this.currency || '';
     }
 
     getChainAddress(address) {
@@ -872,7 +890,7 @@ class Wallet extends EventEmitter {
             if (this.selectedToken) {
                 token = this.selectedToken;
             } else {
-                return Promise.reject('No selected token');
+                ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'No selected token' });
             }
         }
 
@@ -913,7 +931,7 @@ class Wallet extends EventEmitter {
         logger.info('Enable assets:', assets);
 
         if (!Array.isArray(assets)) {
-            return Promise.reject('No asset list');
+            ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'No asset list' });
         }
 
         let changed = false;
@@ -943,7 +961,7 @@ class Wallet extends EventEmitter {
         logger.info('Add asset', symbol, opts);
 
         if (symbol in this.assets) {
-            return Promise.reject(`${symbol} exists`);
+            ErrorHandler.throwError({ code: ERRORS.TOKEN_EXISTS, data: `${symbol} exists` });
         }
         let source = (opts && typeof opts.source !== 'undefined') ? opts.source : 'user';
         let tokenAddress = await NodeService.getTokenAddressBySymbol(symbol);
@@ -1011,10 +1029,10 @@ class Wallet extends EventEmitter {
         let { page, pageSize } = opts;
 
         if (!this.walletProvider) {
-            return Promise.reject('NO_WALLET_PROVIDER');
+            ErrorHandler.throwError(ERRORS.NO_WALLET_PROVIDER);
         }
         if (!this.selectedToken) {
-            return Promise.reject('No selected token');
+            ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'No selected token' });
         }
         let tokenAddress = await NodeService.getTokenAddressBySymbol(this.selectedToken);
 
@@ -1095,13 +1113,18 @@ class Wallet extends EventEmitter {
     }
 
     setLanguage(language) {
+        if (!LANGUAGES.includes(language)) {
+            ErrorHandler.throwError(ERRORS.INVALID_PARAMS);
+        }
         StorageService.saveLanguage(language);
+        this.language = language;
         this.emit('setLanguage', language);
         return true;
     }
 
     async getLanguage() {
-        return await StorageService.getLanguage();
+        const language = await StorageService.getLanguage();
+        return language || '';
     }
 
     getAccount(accountId) {
@@ -1129,7 +1152,7 @@ class Wallet extends EventEmitter {
     }
 
     getSelectedAccount() {
-        return this.selectedAccount ? this.selectedAccount : '';
+        return this.selectedAccount || '';
     }
 
     getSelectedAccountAddress() {

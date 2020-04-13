@@ -226,7 +226,7 @@ export default {
         selLangEv(lang) {
             let _this = this;
             _this.$i18n.locale = lang;
-            _this.PopupAPI.setLanguage(lang).then(res => {});
+            _this.PopupAPI.setLanguage(lang);
             _this.langPopShow = false;
         },
         back() {
@@ -298,14 +298,14 @@ export default {
                 }).catch(err => {
                     console.log('addAccount error:', err);
                     Toast({
-                        message: err
+                        message: err.message
                     });
                     _this.isProcessing = false;
                 });
             }).catch(err => {
                 console.log('setPassword error:', err);
                 Toast({
-                    message: err
+                    message: err.message
                 });
                 _this.isProcessing = false;
             });
@@ -346,7 +346,7 @@ export default {
             try {
                 this.selectedNetwork = await this.PopupAPI.getSelectedChain();
             } catch (error) {
-                MessageBox.alert('Get selected chain error');
+                MessageBox.alert(error.message);
             }
         },
         // 打开网络树形结构组件

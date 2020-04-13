@@ -42,7 +42,6 @@ export default {
                     this.networks = networks;
                 }
             } catch (error) {
-                // MessageBox.alert('网络列表获取异常');
                 console.log('getNetworks error:', error);
             }
         },
@@ -73,7 +72,6 @@ export default {
                     this.activeNetwork = { network: id };
                 }
             } catch (error) {
-                // MessageBox.alert('链列表获取异常');
                 console.log('getChainsOfNetwork error:', error);
             }
         },

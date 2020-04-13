@@ -55,7 +55,7 @@ export default {
       })
       .catch(err => {
         Toast({
-          message: err
+          message: err.message
         });
       });
     _this.fromWalletDetailShow = _this.$route.params.type == 1 ? true : false;

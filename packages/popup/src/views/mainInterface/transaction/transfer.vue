@@ -432,7 +432,7 @@ export default {
           iconClass: "mintui mintui-success"
         });
       }).catch(err => {
-        console.log('err:', err)
+        console.log('transfer error:', err)
         this.isProcessing = false;
         Toast({
           message: this.$t('lang.main.transferFail')
@@ -472,10 +472,8 @@ export default {
         this.loading = false;
       }).catch(err => {
         this.loading = false;
-        if (err == 'NO_WALLET_PROVIDER') {
-        }
         Toast({
-          message: err
+          message: err.message
         });
       });
     },

@@ -88,31 +88,27 @@ export default {
         },
         getNetworkAssets() {
             let _this = this;
-            _this.PopupAPI.getNetworkAssets()
-                .then(res => {
-                    console.log('networkAssets:', res);
-                    _this.loading = false;
-                    _this.coinArr = [];
-                    Object.entries(res).forEach(([symbol, info]) => {
-                        let item = {};
-                        item.symbol = symbol;
-                        item.name = info.name;
-                        item.address = info.address;
-                        item.icon = info.icon;
-                        item.enabled = info.enabled;
-                        _this.coinArr.push(item);
-                    });
-                    console.log('netCoinArr:', _this.coinArr);
-                    _this.loading = false;
-                })
-                .catch(error => {
-                    _this.loading = false;
-                    if (error == 'NO_WALLET_PROVIDER') {
-                    }
-                    Toast({
-                        message: error
-                    });
+            _this.PopupAPI.getNetworkAssets().then(res => {
+                console.log('networkAssets:', res);
+                _this.loading = false;
+                _this.coinArr = [];
+                Object.entries(res).forEach(([symbol, info]) => {
+                    let item = {};
+                    item.symbol = symbol;
+                    item.name = info.name;
+                    item.address = info.address;
+                    item.icon = info.icon;
+                    item.enabled = info.enabled;
+                    _this.coinArr.push(item);
                 });
+                console.log('netCoinArr:', _this.coinArr);
+                _this.loading = false;
+            }).catch(err => {
+                _this.loading = false;
+                Toast({
+                    message: err.message
+                });
+            });
         },
         switchChange(item, index) {
             // console.log('switched', item, index);
@@ -125,7 +121,11 @@ export default {
                 }
             });
             this.PopupAPI.enableAssets(enabledList).then(res => {
-                console.log('enable assets', enabledList);
+                console.log('enabled assets', enabledList);
+            }).catch(err => {
+                Toast({
+                    message: err.message
+                });
             });
             this.$router.back();
         },

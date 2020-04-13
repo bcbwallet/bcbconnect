@@ -1,6 +1,7 @@
 import Logger from '@bcblink/lib/logger';
 import axios from 'axios';
 import StorageService from '../StorageService';
+import { ERRORS, ErrorHandler } from '@bcblink/lib/errors';
 
 const logger = new Logger('WalletProvider');
 
@@ -32,7 +33,7 @@ class WalletProvider {
             this.provider = providedNetworks[this.network];
             this.chain = chain;
         } else {
-            return Promise.reject(`Unsupported network ${network}`);
+            ErrorHandler.throwError(ERRORS.WRONG_NETWORK_ID);
         }
     }
 
@@ -48,7 +49,7 @@ class WalletProvider {
         return this.network !== this.chain;
     }
 
-    async request(url, data = false) {
+    async _request(url, data = false) {
         return new Promise((resolve, reject) => {
             let axioMethod = data ? axios.post : axios.get;
             axioMethod(url, data).then(result => {
@@ -56,13 +57,22 @@ class WalletProvider {
                     resolve(result.data);
                 } else {
                     logger.info(`HTTP response ${result.status} -- ${url}`);
-                    return reject('Server error');
+                    reject({ code: SERVER_ERROR, data: `HTTP response ${result.status} -- ${url}` })
                 }
             }).catch (err => {
                 logger.info(`Wallet provider request error: ${err}`);
-                reject('Network error');
+                reject({ code: ERRORS.NETWORK_ERROR, data: err });
             });
         });
+    }
+
+    _checkResultThrowsError(result) {
+        if (result.code != 0) {
+            ErrorHandler.throwError({ code: result.code, message: result.message, data: result, source: 'provider' });
+        }
+        if (!result.result) {
+            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: result });
+        }
     }
 
     async getNetworkAssets() {
@@ -70,15 +80,11 @@ class WalletProvider {
 
         let url = this.isSideChain ? `${this.provider.url}/${this.chain}` : this.provider.url;
         let coinType = this.provider.coinType;
-        let result = await this.request(
+        let result = await this._request(
             `${url}/api/v1/assets/${coinType}/0`
         );
-        if (result.code != 0) {
-            return Promise.reject(`${result.code}: ${result.message}`);
-        }
-        if (!result.result) {
-            return Promise.reject('No result');
-        }
+        this._checkResultThrowsError(result);
+
         let assets = {};
         result.result.forEach(item => {
             assets[item.symbol] = {
@@ -99,15 +105,11 @@ class WalletProvider {
         }
         let url = this.isSideChain ? `${this.provider.url}/${this.chain}` : this.provider.url;
         let coinType = this.provider.coinType;
-        let result = await this.request(
+        let result = await this._request(
             `${url}/api/v2/addrs/balance/${coinType}/${address}/${currency}?appId=${walletAppId}`
         );
-        if (result.code != 0) {
-            return Promise.reject(`${result.code}: ${result.message}`);
-        }
-        if (!result.result) {
-            return Promise.reject('No result');
-        }
+        this._checkResultThrowsError(result);
+
         let assets = {};
         result.result.forEach(item => {
             assets[item.symbol] = {
@@ -126,16 +128,12 @@ class WalletProvider {
 
         let url = this.isSideChain ? `${this.provider.url}/${this.chain}` : this.provider.url;
         let coinType = this.provider.coinType;
-        let result = await this.request(
+        let result = await this._request(
             `${url}/api/v1/addrs/token_balance/single/${coinType}/${tokenAddress}/${address}?appId=${walletAppId}`
         );
         // console.log(result)
-        if (result.code != 0) {
-            return Promise.reject(`${result.code}: ${result.message}`);
-        }
-        if (!result.result) {
-            return Promise.reject('No result');
-        }
+        this._checkResultThrowsError(result);
+
         let balance = {
             balance: result.result.balance,
             fiatValue: result.result.legalValue,
@@ -150,15 +148,11 @@ class WalletProvider {
 
         let url = this.isSideChain ? `${this.provider.url}/${this.chain}` : this.provider.url;
         let coinType = this.provider.coinType;
-        let result = await this.request(
+        let result = await this._request(
             `${url}/api/v1/addrs/transactions/${coinType}/${address}?conAddr=${tokenAddress}&page=${page}&count=${pageSize}`
         );
-        if (result.code != 0) {
-            return Promise.reject(`${result.code}: ${result.message}`);
-        }
-        if (!result.result) {
-            return Promise.reject('No result');
-        }
+        this._checkResultThrowsError(result);
+
         return result;
     }
 };

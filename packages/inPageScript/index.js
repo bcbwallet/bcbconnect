@@ -51,6 +51,12 @@ const inPageScript = {
             this.broadcastTransaction(...args)
         );
 
+        bcbWeb.onLanguageChanged = (callback) => {
+            if (callback && typeof callback === 'function') {
+                this._callbacks['onLanguageChanged'] = callback;
+            }
+        };
+
         bcbWeb.onStateChanged = (callback) => {
             if (callback && typeof callback === 'function') {
                 this._callbacks['onStateChanged'] = callback;
@@ -103,18 +109,20 @@ const inPageScript = {
     },
 
     _bindEvents() {
+        this.eventChannel.on('setLanguage', language => {
+            this.setLanguage(language);
+        });
+
+        this.eventChannel.on('setState', ready => {
+            this.setState(ready);
+        });
+
         this.eventChannel.on('setAccount', account => {
             this.setAccount(account);
-            if (typeof this._callbacks['onAccountChanged'] === 'function') {
-                this._callbacks['onAccountChanged'](bcbWeb.selectedAccount);
-            }
         });
 
         this.eventChannel.on('setChain', chain => {
             this.setChain(chain);
-            if (typeof this._callbacks['onChainChanged'] === 'function') {
-                this._callbacks['onChainChanged'](bcbWeb.selectedChain);
-            }
         });
     },
 
@@ -122,34 +130,39 @@ const inPageScript = {
         bcbWeb.version = version;
     },
 
-    setAccount({ name, address }) {
-        let account = {};
-        account.name = name;
-        account.address = address;
-        bcbWeb.selectedAccount = account;
+    setLanguage(language) {
+        bcbWeb.language = language;
 
-        if (account.address) {
-            if (!bcbWeb.ready) {
-                bcbWeb.ready = true;
-                if (typeof this._callbacks['onStateChanged'] === 'function') {
-                    this._callbacks['onStateChanged'](bcbWeb.ready);
-                }
-            }
-        } else {
-            if (bcbWeb.ready) {
-                bcbWeb.ready = false;
-                if (typeof this._callbacks['onStateChanged'] === 'function') {
-                    this._callbacks['onStateChanged'](bcbWeb.ready);
-                }
-            }
+        if (typeof this._callbacks['onLanguageChanged'] === 'function') {
+            this._callbacks['onLanguageChanged'](language);
         }
     },
 
-    setChain({ network, chain }) {
-        let chainInfo = {};
-        chainInfo.network = network;
-        chainInfo.chain = chain;
-        bcbWeb.selectedChain = chainInfo;
+    setState(ready) {
+        if (bcbWeb.ready == ready) {
+            return;
+        }
+        bcbWeb.ready = ready;
+
+        if (typeof this._callbacks['onStateChanged'] === 'function') {
+            this._callbacks['onStateChanged'](ready);
+        }
+    },
+
+    setAccount(account) {
+        bcbWeb.selectedAccount = account;
+
+        if (typeof this._callbacks['onAccountChanged'] === 'function') {
+            this._callbacks['onAccountChanged'](account);
+        }
+    },
+
+    setChain(chainOpts) {
+        bcbWeb.selectedChain = chainOpts;
+
+        if (typeof this._callbacks['onChainChanged'] === 'function') {
+            this._callbacks['onChainChanged'](chainOpts);
+        }
     },
 
     init() {
@@ -158,29 +171,33 @@ const inPageScript = {
         this._bindEventChannel();
         this._bindEvents();
 
-        this.request('init').then(({ version, account, chain }) => {
-            if (version)
+        this.request('init').then(({ version, language, ready, account, chain }) => {
+            if (version) {
                 this.setVersion(version);
-            if (account)
+            }
+            if (language) {
+                this.setLanguage(language);
+            }
+            if (ready) {
+                this.setState(ready);
+            }
+            if (account) {
                 this.setAccount(account);
-            if (chain)
+            }
+            if (chain) {
                 this.setChain(chain);
+            }
 
             logger.info('BcbWeb initiated');
         }).catch(err => {
-            logger.error(`Failed to initialise BcbWeb: ${err}`);
+            logger.error('Failed to initialise BcbWeb:', err);
         });
     },
 
     getBalance(tokenAddress, callback = false) {
-        if (!callback)
+        if (!callback) {
             return injectPromise(this.getBalance.bind(this), tokenAddress);
-
-        if (!tokenAddress)
-            return callback('Invalid token address provided');
-
-        if(!bcbWeb.ready)
-            return callback('User has not unlocked wallet');
+        }
 
         this.request('getBalance', tokenAddress).then(balance => {
             callback(null, balance);
@@ -190,14 +207,9 @@ const inPageScript = {
     },
 
     getBalanceBySymbol(tokenSymbol, callback = false) {
-        if (!callback)
+        if (!callback) {
             return injectPromise(this.getBalanceBySymbol.bind(this), tokenSymbol);
-
-        if (!tokenSymbol)
-            return callback('Invalid token symbol provided');
-
-        if(!bcbWeb.ready)
-            return callback('User has not unlocked wallet');
+        }
 
         this.request('getBalanceBySymbol', tokenSymbol).then(balance => {
             callback(null, balance);
@@ -207,44 +219,33 @@ const inPageScript = {
     },
 
     requestLogin(callback = false) {
-        if (!callback)
+        if (!callback) {
             return injectPromise(this.requestLogin.bind(this));
+        }
 
-        this.request('requestLogin').then(() => {
-            callback(null, true);
+        this.request('requestLogin').then(success => {
+            callback(null, success);
         }).catch(err => {
             callback(err);
         });
     },
 
     signMessage(message, callback = false) {
-        if(!callback)
+        if(!callback) {
             return injectPromise(this.signMessage.bind(this), message);
+        }
 
-        if(!message)
-            return callback('Invalid message provided');
-
-        if(!bcbWeb.ready)
-            return callback('User has not unlocked wallet');
-
-        this.request('signMessage', message
-        ).then(res => (
-            callback(null, res)
+        this.request('signMessage', message).then(result => (
+            callback(null, result)
         )).catch(err => {
-            logger.error(`Failed to sign message: ${err}`);
             callback(err);
         });
     },
 
     signTransaction(transaction, callback = false) {
-        if (!callback)
+        if (!callback) {
             return injectPromise(this.signTransaction.bind(this), transaction);
-
-        if(!transaction)
-            return callback('Invalid transaction provided');
-
-        if(!bcbWeb.ready)
-            return callback('User has not unlocked wallet');
+        }
 
         this.request('signTransaction', transaction).then(signedTransaction => {
             callback(null, signedTransaction);
@@ -254,14 +255,9 @@ const inPageScript = {
     },
 
     broadcastTransaction(signedTransaction, callback = false) {
-        if (!callback)
+        if (!callback) {
             return injectPromise(this.broadcastTransaction.bind(this), signedTransaction);
-
-        if(!signedTransaction)
-            return callback('Invalid transaction provided');
-
-        if(!bcbWeb.ready)
-            return callback('User has not unlocked wallet');
+        }
 
         this.request('broadcastTransaction', signedTransaction).then(txHash => {
             callback(null, txHash);
@@ -271,14 +267,9 @@ const inPageScript = {
     },
 
     transferToken(token, to, value, note = '', callback = false) {
-        if (!callback)
+        if (!callback) {
             return injectPromise(this.transferToken.bind(this), token, to, value, note);
-
-        if(!token || !to || !value)
-            return callback('Invalid parameter provided');
-
-        if(!bcbWeb.ready)
-            return callback('User has not unlocked wallet');
+        }
 
         this.request('transferToken', { token, to, value, note }).then(txHash => {
             callback(null, txHash);
@@ -288,14 +279,9 @@ const inPageScript = {
     },
 
     sendTransaction(transaction, callback = false) {
-        if (!callback)
+        if (!callback) {
             return injectPromise(this.sendTransaction.bind(this), transaction);
-
-        if(!transaction)
-            return callback('Invalid transaction provided');
-
-        if(!bcbWeb.ready)
-            return callback('User has not unlocked wallet');
+        }
 
         this.request('sendTransaction', transaction).then(txHash => {
             callback(null, txHash);
