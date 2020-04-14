@@ -31,6 +31,17 @@ const publicNetworks = {
 };
 
 const NodeService = {
+    init() {
+        logger.info('init');
+
+        if (!this.ready) {
+            this.reset();
+            this._read();
+
+            this.ready = true;
+        }
+    },
+
     reset() {
         this.networks = {};
         this.network = false;
@@ -66,7 +77,7 @@ const NodeService = {
         this.networks = Object.keys(networks).length ? networks : deepCopy(publicNetworks);
 
         let chainOpts = StorageService.getSelectedChain();
-        // migrating from pre-2.0 version
+        // migrating data from version 1.0
         if (typeof chainOpts === 'string') {
             chainOpts = { network: 'bcb', chain: chainOpts };
         }
@@ -77,9 +88,10 @@ const NodeService = {
         }
 
         const nodes = StorageService.getNodes();
+        // migrating data from version 1.0
         if (Object.keys(nodes).length) {
             Object.entries(nodes).forEach(([ nodeId, node ]) => {
-                let url = node.url || node.host; // old data has host
+                let url = node.url || node.host; 
                 if (url) {
                     nodes[nodeId].url = url;
                 }
@@ -101,22 +113,6 @@ const NodeService = {
         if (this.network && !this.chain && !this.selectedNode) {
             this.fallbackToDefaultNodes();
         }
-    },
-
-    init() {
-        logger.info('init');
-
-        if (!this.ready) {
-            this.reset();
-            this._read();
-
-            this.ready = true;
-        }
-    },
-
-    purge() {
-        logger.info('purge');
-        this.reset();
     },
 
     _saveTokenAddressCache(key, value) {
@@ -197,11 +193,6 @@ const NodeService = {
         });
         logger.info(`chains: ${chains}`);
         if (chains.length > 0) {
-            // remove jiujiu chain
-            // let pos = chains.indexOf('jiujiu');
-            // if (pos >= 0) {
-            //     chains.splice(pos, 1);
-            // }
             this.networks[network].chains = chains;
             this.saveNetworks();
         }
@@ -314,12 +305,12 @@ const NodeService = {
 
         let { name, url, chainId } = networkInfo;
         if (!name || !url) {
-            errros.throwError({ code: ERRORS.INVALID_PARAMS, data: networkInfo });
+            ErrorHandler.throwError({ code: ERRORS.INVALID_PARAMS, data: networkInfo });
         }
         let nodeInfo = await this.getNodeInfo(url);
         logger.info('Node info:', nodeInfo);
         if (chainId && chainId != nodeInfo.chainId) {
-            errros.throwError(errros.WRONG_CHAIN_ID);
+            ErrorHandler.throwError(ERRORS.WRONG_CHAIN_ID);
         }
         let { network, chain } = this._splitChainId(nodeInfo.chainId);
         logger.info(`network: ${network}, chain: ${chain}`);
@@ -673,7 +664,7 @@ const NodeService = {
         let result = resp.result;
         if (!result.response
             || result.response.code != 200
-            || typeof result.response.value === undefined) {
+            || typeof result.response.value === 'undefined') {
             ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
         }
         let value = Base64.decode(result.response.value);
@@ -691,7 +682,7 @@ const NodeService = {
         let result = resp.result;
         if (!result.response
             || result.response.code != 200
-            || typeof result.response.value === undefined) {
+            || typeof result.response.value === 'undefined') {
             ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
         }
         let value = Base64.decode(result.response.value);
@@ -715,7 +706,7 @@ const NodeService = {
             || result.response.code != 200) {
             ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
         }
-        if (typeof result.response.value === undefined) {
+        if (typeof result.response.value === 'undefined') {
             return 0;
         }
         let value = Base64.decode(result.response.value);
@@ -739,7 +730,7 @@ const NodeService = {
             || result.response.code != 200) {
             ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
         }
-        if (typeof result.response.value === undefined) {
+        if (typeof result.response.value === 'undefined') {
             return 0;
         }
         let value = Base64.decode(result.response.value);
@@ -766,7 +757,7 @@ const NodeService = {
         let result = resp.result;
         if (!result.response
             || result.response.code != 200
-            || typeof result.response.value === undefined) {
+            || typeof result.response.value === 'undefined') {
             ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
         }
         let value = Base64.decode(result.response.value);
@@ -793,7 +784,7 @@ const NodeService = {
         let result = resp.result;
         if (!result.response
             || result.response.code != 200
-            || typeof result.response.value === undefined) {
+            || typeof result.response.value === 'undefined') {
             ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
         }
         let value = Base64.decode(result.response.value);

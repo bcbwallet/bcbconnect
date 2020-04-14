@@ -167,9 +167,9 @@ const backgroundScript = {
                 try {
                     this.walletService.checkReadyThrowsError();
 
-                    const account = this.walletService.getSelectedAccountDetails();
+                    const address = this.walletService.getSelectedAccountAddress();
 
-                    let balance = await NodeService.getBalance(account.address, tokenAddress);
+                    let balance = await NodeService.getBalance(address, tokenAddress);
                     // logger.info(balance)
                     success = true;
                     data = balance;
@@ -187,10 +187,10 @@ const backgroundScript = {
                 try {
                     this.walletService.checkReadyThrowsError();
 
-                    const account = this.walletService.getSelectedAccountDetails();
+                    const address = this.walletService.getSelectedAccountAddress();
 
                     let tokenAddress = await NodeService.getTokenAddressBySymbol(symbol);
-                    let balance = await NodeService.getBalance(account.address, tokenAddress);
+                    let balance = await NodeService.getBalance(address, tokenAddress);
                     // logger.info(balance)
                     success = true;
                     data = balance;
@@ -215,8 +215,6 @@ const backgroundScript = {
                 try {
                     this.walletService.checkReadyThrowsError();
 
-                    const account = this.walletService.getSelectedAccountDetails();
-
                     let result = await this.walletService.signMessage(data);
                     let { signature, pubkey } = result;
 
@@ -227,6 +225,8 @@ const backgroundScript = {
                             uuid
                         });
                     }
+
+                    const account = this.walletService.getSelectedAccountDetails();
 
                     this.walletService.queueConfirmation({
                         type: CONFIRMATION_TYPE.STRING,
@@ -251,8 +251,6 @@ const backgroundScript = {
                 try {
                     this.walletService.checkReadyThrowsError();
 
-                    const account = this.walletService.getSelectedAccountDetails();
-
                     this.walletService.checkTransactionDefaults(transaction);
                     let signedTx = await this.walletService.signTransaction(transaction);
                     // logger.info(signedTx);
@@ -264,6 +262,8 @@ const backgroundScript = {
                             uuid
                         });
                     }
+
+                    const account = this.walletService.getSelectedAccountDetails();
 
                     transaction.cost = await NodeService.getTransactionCost(transaction.calls);
 
@@ -290,8 +290,6 @@ const backgroundScript = {
                 try {
                     this.walletService.checkReadyThrowsError();
 
-                    const account = this.walletService.getSelectedAccountDetails();
-
                     this.walletService.checkTransactionDefaults(transaction);
                     let signedTx = await this.walletService.signTransaction(transaction);
                     // logger.info(signedTx);
@@ -313,6 +311,8 @@ const backgroundScript = {
                     if (this.walletService.checkAutoSign()) {
                         return send(signedTx, resolve);
                     }
+
+                    const account = this.walletService.getSelectedAccountDetails();
 
                     transaction.cost = await NodeService.getTransactionCost(transaction.calls);
 
@@ -368,8 +368,6 @@ const backgroundScript = {
                 try {
                     this.walletService.checkReadyThrowsError();
 
-                    const account = this.walletService.getSelectedAccountDetails();
-
                     let transaction = await this.walletService.getTransactionForTransfer({ token, to, value, note });
                     let signedTx = await this.walletService.signTransaction(transaction);
                     // logger.info(signedTx);
@@ -391,6 +389,8 @@ const backgroundScript = {
                     if (this.walletService.checkAutoSign()) {
                         return send(signedTx, resolve);
                     }
+
+                    const account = this.walletService.getSelectedAccountDetails();
 
                     transaction.cost = await NodeService.getTransactionCost(transaction.calls);
 
@@ -429,8 +429,8 @@ const backgroundScript = {
     },
 
     bindWalletEvents() {
-        this.walletService.on('newState', appState => {
-            logger.info('newState:', appState);
+        this.walletService.on('setState', appState => {
+            logger.info('setState:', appState);
             BackgroundAPI.setState(appState)
         });
 

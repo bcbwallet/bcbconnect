@@ -34,10 +34,17 @@ class Wallet extends EventEmitter {
         this.language = false;
         this.state = APP_STATE.UNINITIALISED;
 
+        this.init();
+    }
+
+    init() {
         this.reset();
 
-        this._checkStorage();
         this._registerListeners();
+
+        this._checkStorage();
+
+        this._setLanguage();
     }
 
     reset(opts) {
@@ -78,27 +85,26 @@ class Wallet extends EventEmitter {
         }
     }
 
+    async _setLanguage() {
+        const language = await StorageService.getLanguage().catch(err => {});
+        this.language = language || 'en-US';
+        this.emit('setLanguage', this.language);
+    }
+
     _setState(appState) {
+        logger.info(`Setting app state to ${ appState }`);
+
         if(this.state === appState) {
-            logger.info(`ignore state: ${appState}`);
             return;
         }
 
-        logger.info(`Setting app state to ${ appState }`);
-
         this.state = appState;
-        this.emit('newState', appState);
+        this.emit('setState', appState);
 
         return appState;
     }
 
     async _loadSettings() {
-        const language = await StorageService.getLanguage();
-        if (language) {
-            this.language = language;
-            this.emit('setLanguage', language);
-        }
-
         await this._loadChainSettings();
     }
 
@@ -292,8 +298,9 @@ class Wallet extends EventEmitter {
 
     async purgeData(password) {
         await StorageService.purge();
-        this.reset();
+
         NodeService.reset();
+        this.reset();
     }
 
     async setPassword(password) {
