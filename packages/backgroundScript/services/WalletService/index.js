@@ -449,11 +449,7 @@ class Wallet extends EventEmitter {
     }
 
     async requestLogin() {
-        if (this.state === APP_STATE.UNINITIALISED
-            || this.state === APP_STATE.PASSWORD_SET) {
-            await this._openPopup();
-            // await this._pollAccounts();
-        }
+        await this._openPopup();
     }
 
     async queueConfirmation(confirmation, uuid, callback) {
