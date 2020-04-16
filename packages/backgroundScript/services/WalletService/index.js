@@ -74,6 +74,7 @@ class Wallet extends EventEmitter {
         // Global window listener, should only be registered once.
         extensionizer.windows.onRemoved.addListener((winId) => {
             if (this.popup && this.popup.id === winId) {
+                this.popup = false;
                 this.rejectConfirmation();
             }
         });
@@ -438,9 +439,7 @@ class Wallet extends EventEmitter {
         if (!this.popup) {
             return;
         }
-        if (!this.popup.closed) {
-            extensionizer.windows.remove(this.popup.id);
-        }
+        extensionizer.windows.remove(this.popup.id);
         this.popup = false;
     }
 
@@ -498,7 +497,7 @@ class Wallet extends EventEmitter {
         logger.info(`Reject confirmation ${message}`);
 
         if (this.confirmations.length === 0) {
-            logger.warn('No confirmation to reject');
+            logger.info('No confirmation to reject');
             return this._closePopup();
         }
 
