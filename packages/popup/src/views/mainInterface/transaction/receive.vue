@@ -26,7 +26,7 @@
       class="threeBlueBtn colorfff tac cur-p fs16 m-auto"
       @click="gotoBcbscan"
     >
-      {{ $t('lang.main.bcbscanLook') }}
+      {{ $t('lang.main.gotoBcbscan') }}
     </div>
   </div>
 </template>
@@ -52,7 +52,7 @@ export default {
   created() {
     this.walletAddr = this.$store.state.account.address;
     if (this.walletAddr === "") {
-      this.walletAddr = this.$t('lang.main.noAddress');
+      this.walletAddr = this.$t('lang.main.noAccount');
     }
     this.token = this.$store.state.token;
     // this.qrcode(this.walletAddr);
