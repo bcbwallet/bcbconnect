@@ -509,7 +509,7 @@ class Wallet extends EventEmitter {
 
         callback({
             success: false,
-            data: ERRORS.newError(ERRORS.REQUEST_DECLINED),
+            data: ErrorHandler.newError(ERRORS.REQUEST_DECLINED),
             uuid
         });
 

@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA34I3lPKdjlW5TKqiOIYYAcGHcErQPgkHVzFzCVxjuD4axraOBR51CoWflcWC6S+PkOri+nMWDMh8SZOycUbM3UvxP96yP5ht5w5riW3mqqsN+oDOpykcErFSUcXvbOXMcKQkG2KChVilxrNsirnIKCRV3qkfgmBKq5M7cTu7yS4GbN2txTdJY4N/50VYQBc4F/NWCgXnQJL9whedj030nT8hs2w4ElD/PRI7e1/AEl+0D1d2/RVN81k7wXbjgx1i1td49sN3nE0iiH/Kfj6qj4NTya/44X+8cwM4WUm+IQCnfJUr1UKKmgOs8eHWej/1hIuckFeS0h5nbfEq/PKiRQIDAQAB",
   "name": "BCB Connect",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "description": "A BCB wallet in your browser",
   "author": "BCB Community",
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
