@@ -71,6 +71,9 @@ class Wallet extends EventEmitter {
     }
 
     _registerListeners() {
+        if (extensionizer.windows.onRemoved === undefined) {
+            return;
+        }
         // Global window listener, should only be registered once.
         extensionizer.windows.onRemoved.addListener((winId) => {
             if (this.popup && this.popup.id === winId) {
@@ -113,7 +116,7 @@ class Wallet extends EventEmitter {
         logger.info('Load assets');
 
         if (!this.network) {
-            ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'Network not set' });
+            ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'Network not set' });
         }
         const allAssets = StorageService.getAssets();
         if (allAssets[this.network] && Object.keys(allAssets[this.network]).length) {
@@ -191,7 +194,13 @@ class Wallet extends EventEmitter {
             accountObj.name = account.name;
             this.accounts[ accountId ] = accountObj;
         });
+        this.emit('setAccounts', this.getAccounts());
+
+        if (!(selectedAccount in accounts)) {
+            ErrorHandler.throwError({ id: ERRORS.DATA_CORRUPT, data: 'Selected account' });
+        }
         this.selectedAccount = selectedAccount;
+        this.emit('setAccount', this.getAccountDetails(this.selectedAccount));
     }
 
     // _poll(fn, interval) {
@@ -219,7 +228,6 @@ class Wallet extends EventEmitter {
 
         const accounts = Object.values(this.accounts);
         if (accounts.length > 0) {
-            this.emit('setAccounts', this.getAccounts());
             this._shouldPoll = false;
         }
         this._timer = setTimeout(() => {
@@ -361,7 +369,6 @@ class Wallet extends EventEmitter {
         await this._loadAssets();
 
         this._loadAccounts();
-        this.emit('setAccount', this.getAccountDetails(this.selectedAccount));
 
         if (this.confirmations.length === 0) {
             // this.setCache();
@@ -526,7 +533,7 @@ class Wallet extends EventEmitter {
         }
         let accountIndex = StorageService.getAccountIndex();
         if (!Number.isInteger(accountIndex)) {
-            ErrorHandler.throwError({ code: ERRORS.DATA_CORRUPT, data: 'Account index' });
+            ErrorHandler.throwError({ id: ERRORS.DATA_CORRUPT, data: 'Account index' });
         }
         accountIndex += 1;
         let account = new Account(
@@ -744,7 +751,7 @@ class Wallet extends EventEmitter {
 
         let { network, chain } = chainOpts;
         if (!network) {
-            ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'No network' });
+            ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No network' });
         }
         if (!chain) {
             chain = network;
@@ -764,7 +771,7 @@ class Wallet extends EventEmitter {
             } else {
                 let nodeInfo = await NodeService.getNodeInfo(await NodeService.getSeedNodeUrl(network));
                 if (!nodeInfo || !nodeInfo.token || !nodeInfo.token.symbol) {
-                    ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'No token info' });
+                    ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No token info' });
                 }
                 tokenSymbol = nodeInfo.token.symbol;
                 // tag as 'user, balance is requested from node
@@ -788,9 +795,10 @@ class Wallet extends EventEmitter {
             if (await StorageService.dataExists()) {
                 if (networkChanged) {
                     this._loadAccounts();
+                } else {
+                    this.emit('setAccounts', this.getAccounts());
+                    this.emit('setAccount', this.getAccountDetails(this.selectedAccount));
                 }
-                this.emit('setAccounts', this.getAccounts());
-                this.emit('setAccount', this.getAccountDetails(this.selectedAccount));
             }
             return true;
         } catch(err) {
@@ -892,7 +900,7 @@ class Wallet extends EventEmitter {
             if (this.selectedToken) {
                 token = this.selectedToken;
             } else {
-                ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'No selected token' });
+                ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No selected token' });
             }
         }
 
@@ -933,7 +941,7 @@ class Wallet extends EventEmitter {
         logger.info('Enable assets:', assets);
 
         if (!Array.isArray(assets)) {
-            ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'No asset list' });
+            ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No asset list' });
         }
 
         let changed = false;
@@ -963,7 +971,7 @@ class Wallet extends EventEmitter {
         logger.info('Add asset', symbol, opts);
 
         if (symbol in this.assets) {
-            ErrorHandler.throwError({ code: ERRORS.TOKEN_EXISTS, data: `${symbol} exists` });
+            ErrorHandler.throwError({ id: ERRORS.TOKEN_EXISTS, data: `${symbol} exists` });
         }
         let source = (opts && typeof opts.source !== 'undefined') ? opts.source : 'user';
         let tokenAddress = await NodeService.getTokenAddressBySymbol(symbol);
@@ -990,6 +998,7 @@ class Wallet extends EventEmitter {
                 if (typeof assets[key].source === 'undefined') {
                     assets[key].source = 'network';
                 }
+                assets[key].source = 'network';
                 if (enabled) {
                     assets[key].enabled = true;
                 }
@@ -1034,7 +1043,7 @@ class Wallet extends EventEmitter {
             ErrorHandler.throwError(ERRORS.NO_WALLET_PROVIDER);
         }
         if (!this.selectedToken) {
-            ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'No selected token' });
+            ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No selected token' });
         }
         let tokenAddress = await NodeService.getTokenAddressBySymbol(this.selectedToken);
 
