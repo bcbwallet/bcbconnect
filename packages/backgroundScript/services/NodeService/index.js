@@ -170,14 +170,14 @@ const NodeService = {
                 return { network: splits[0], chain: splits[0] };
             }
         }
-        ErrorHandler.throwError({ code: ERRORS.WRONG_CHAIN_ID, data: chainId });
+        ErrorHandler.throwError({ id: ERRORS.WRONG_CHAIN_ID, data: chainId });
     },
 
     async _updateChainsOfNetwork(network) {
         logger.info(`update chains of network ${network}`);
 
         if (!(network in this.networks)) {
-            ErrorHandler.throwError({ code: ERRORS.WRONG_NETWORK_ID, data: network });
+            ErrorHandler.throwError({ id: ERRORS.WRONG_NETWORK_ID, data: network });
         }
 
         let nodeUrl = this.networks[network].urls[0];
@@ -207,7 +207,7 @@ const NodeService = {
             let chainId = this.getChainId();
             let urls = await this.getNodeUrls(nodeUrl, chainId);
             if (!Array.isArray(urls)) {
-                ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: `Got no node for ${chainId}` });
+                ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: `Got no node for ${chainId}` });
             }
 
             let keepSelected = false;
@@ -305,7 +305,7 @@ const NodeService = {
 
         let { name, url, chainId } = networkInfo;
         if (!name || !url) {
-            ErrorHandler.throwError({ code: ERRORS.INVALID_PARAMS, data: networkInfo });
+            ErrorHandler.throwError({ id: ERRORS.INVALID_PARAMS, data: networkInfo });
         }
         let nodeInfo = await this.getNodeInfo(url);
         logger.info('Node info:', nodeInfo);
@@ -381,7 +381,7 @@ const NodeService = {
         logger.info(`Get chains of network ${network}`);
 
         if (!(network in this.networks)) {
-            errros.throwError({ code: errros.WRONG_NETWORK_ID, data: `Unknown network ${network}` });
+            errros.throwError({ id: ERRORS.WRONG_NETWORK_ID, data: `Unknown network ${network}` });
         }
         await this._updateChainsOfNetwork(network).catch(err => {
             logger.error(`Failed to update chains of network ${network}: ${err}`);
@@ -463,7 +463,7 @@ const NodeService = {
 
     deleteNode(nodeId) {
         if (nodeId === this.selectedNode) {
-            ErrorHandler.throwError({ code: ERRORS.INVALID_PARAMS, data: 'Cannot delete selected node' });
+            ErrorHandler.throwError({ id: ERRORS.INVALID_PARAMS, data: 'Cannot delete selected node' });
         }
         delete this.nodes[ nodeId ];
         this.saveNodes();
@@ -476,7 +476,7 @@ const NodeService = {
 
     getDefaultNodeUrl(networkId) {
         if (!(networkId in publicNetworks)) {
-            ErrorHandler.throwError({ code: ERRORS.WRONG_NETWORK_ID, data: `No default node for ${networkId}` });
+            ErrorHandler.throwError({ id: ERRORS.WRONG_NETWORK_ID, data: `No default node for ${networkId}` });
         }
         return publicNetworks[networkId].urls[0];
     },
@@ -497,7 +497,7 @@ const NodeService = {
                     let urls = await this.getNodeUrls(url, this.getChainId());
                     let nodeInfo = await this.getNodeInfo(urls[0]);
                     if (!nodeInfo.mainUrls || !nodeInfo.mainUrls.length) {
-                        ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: 'No mainUrls' });
+                        ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: 'No mainUrls' });
                     }
                     return nodeInfo.mainUrls[0];
                 }
@@ -508,7 +508,7 @@ const NodeService = {
         if (url) {
             return url;
         } else {
-            ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: `No default node for network: ${this.network}` })
+            ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: `No default node for network: ${this.network}` })
         }
     },
 
@@ -548,16 +548,16 @@ const NodeService = {
             ErrorHandler.throwError(this._nodeError(resp.error));
         }
         if (!resp.result) {
-            ErrorHandler.throwError({ code: SERVER_ERROR, data: resp });
+            ErrorHandler.throwError({ id: SERVER_ERROR, data: resp });
         }
     },
 
     _getSelectedNodeUrl() {
         if (!this.selectedNode) {
-            ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'No node selected' });
+            ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No node selected' });
         }
         if (!this.nodes[this.selectedNode] || !this.nodes[this.selectedNode].url) {
-            ErrorHandler.throwError({ code: ERRORS.INTERNEL_ERROR, data: 'No node url' });
+            ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No node url' });
         }
         return this.nodes[this.selectedNode].url;
     },
@@ -583,11 +583,11 @@ const NodeService = {
                     resolve(resp.data);
                 } else {
                     logger.info(`HTTP response ${resp.status} -- ${url}`);
-                    reject({ code: SERVER_ERROR, data: `HTTP response ${resp.status} -- ${url}` })
+                    reject(ErrorHandler.newError({ id: ERRORS.SERVER_ERROR, data: `HTTP response ${resp.status} -- ${url}` }));
                 }
             }).catch (err => {
                 logger.info(`Node request error: ${err}`);
-                reject({ code: ERRORS.NETWORK_ERROR, data: err });
+                reject(ErrorHandler.newError({ id: ERRORS.NETWORK_ERROR, data: err }));
             });
         });
     },
@@ -607,7 +607,7 @@ const NodeService = {
         });
         this._setNodeStats(nodeUrl, 'latency', Date.now() - start);
         if (!resp) {
-            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: 'No response from node' });
+            ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: 'No response from node' });
         }
         return resp;
     },
@@ -627,7 +627,7 @@ const NodeService = {
         let result = resp.result;
         if (!result.genesis
             || !result.genesis.app_state.token) {
-            ErrorHandler.throwError({ code: SERVER_ERROR, data: resp });
+            ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: resp });
         }
         let nodeInfo = {
             chainId: result.genesis.chain_id,
@@ -648,7 +648,7 @@ const NodeService = {
         logger.info(`Get token info of network ${network}`);
 
         if (!(network in this.networks)) {
-            ErrorHandler.throwError({ code: INTERNEL_ERROR, data: `Unknown network ${network}` });
+            ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: `Unknown network ${network}` });
         }
         let nodeUrl = this.networks[network].urls[0];
         let nodeInfo = await this.getNodeInfo(nodeUrl);
@@ -665,7 +665,7 @@ const NodeService = {
         if (!result.response
             || result.response.code != 200
             || typeof result.response.value === 'undefined') {
-            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
+            ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: resp });
         }
         let value = Base64.decode(result.response.value);
         value = JSON.parse(value);
@@ -683,7 +683,7 @@ const NodeService = {
         if (!result.response
             || result.response.code != 200
             || typeof result.response.value === 'undefined') {
-            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
+            ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: resp });
         }
         let value = Base64.decode(result.response.value);
         value = JSON.parse(value);
@@ -704,7 +704,7 @@ const NodeService = {
         let result = resp.result;
         if (!result.response
             || result.response.code != 200) {
-            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
+            ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: resp });
         }
         if (typeof result.response.value === 'undefined') {
             return 0;
@@ -728,7 +728,7 @@ const NodeService = {
         let result = resp.result;
         if (!result.response
             || result.response.code != 200) {
-            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
+            ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: resp });
         }
         if (typeof result.response.value === 'undefined') {
             return 0;
@@ -758,7 +758,7 @@ const NodeService = {
         if (!result.response
             || result.response.code != 200
             || typeof result.response.value === 'undefined') {
-            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
+            ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: resp });
         }
         let value = Base64.decode(result.response.value);
         value = JSON.parse(value);
@@ -785,7 +785,7 @@ const NodeService = {
         if (!result.response
             || result.response.code != 200
             || typeof result.response.value === 'undefined') {
-            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
+            ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: resp });
         }
         let value = Base64.decode(result.response.value);
         value = JSON.parse(value);
@@ -835,7 +835,7 @@ const NodeService = {
     
         let result = resp.result;
         if (!result.deliver_tx) {
-            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: resp });
+            ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: resp });
         }
         if (result.deliver_tx && result.deliver_tx.code == 200) {
             return true;

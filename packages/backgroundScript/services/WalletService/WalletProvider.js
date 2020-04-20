@@ -57,11 +57,11 @@ class WalletProvider {
                     resolve(result.data);
                 } else {
                     logger.info(`HTTP response ${result.status} -- ${url}`);
-                    reject({ code: SERVER_ERROR, data: `HTTP response ${result.status} -- ${url}` })
+                    reject(ErrorHandler.newError({ id: ERRORS.SERVER_ERROR, data: `HTTP response ${result.status} -- ${url}` }));
                 }
             }).catch (err => {
                 logger.info(`Wallet provider request error: ${err}`);
-                reject({ code: ERRORS.NETWORK_ERROR, data: err });
+                reject(ErrorHandler.newError({ id: ERRORS.NETWORK_ERROR, data: err }));
             });
         });
     }
@@ -71,7 +71,7 @@ class WalletProvider {
             ErrorHandler.throwError({ code: result.code, message: result.message, data: result, source: 'provider' });
         }
         if (!result.result) {
-            ErrorHandler.throwError({ code: ERRORS.SERVER_ERROR, data: result });
+            ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: result });
         }
     }
 

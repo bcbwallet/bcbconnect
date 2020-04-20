@@ -43,6 +43,7 @@ export default {
                 }
             } catch (error) {
                 console.log('getNetworks error:', error);
+                MessageBox.alert(error.message);
             }
         },
         // 根据网络编号获取链列表
@@ -73,6 +74,7 @@ export default {
                 }
             } catch (error) {
                 console.log('getChainsOfNetwork error:', error);
+                MessageBox.alert(error.message);
             }
         },
         // 获取数据
@@ -94,7 +96,7 @@ export default {
                 this.$emit('change', data);
             } catch (error) {
                 console.log('selectChain error:', error);
-                MessageBox.alert(error);
+                MessageBox.alert(error.message);
                 this.isLoading = false;
             }
         },

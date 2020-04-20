@@ -117,24 +117,29 @@ const ErrorHandler = {
     },
 
     newError(error) {
-        let code, message, data, source;
+        let id, code, message, data, source;
     
-        if (typeof error === 'string' && error in ERROR_CODES) {
-            let errorId = error;
-            code = ERROR_CODES[errorId];
-            message = ERROR_MESSAGES[this.language][errorId];
+        if (typeof error === 'string') {
+            id = error;
         } else if (typeof error === 'object') {
+            id = error.id;
             code = error.code;
             message = error.message;
             data = error.data;
             source = error.source;
         } else {
-            code = error;
+            id = ERRORS.UNKNOWN_ERROR;
+            data = error;
         }
-    
+
+        if (id && id in ERRORS) {
+            code = ERROR_CODES[id];
+            message = ERROR_MESSAGES[this.language][id];
+        }
         if (!message) {
-            message = ERROR_MESSAGES[this.language][ERRORS.UNKNOWN_ERROR];
+            message = ERROR_MESSAGES[this.language][UNKNOWN_ERROR];
         }
+
         let errorObj = {};
         errorObj.code = code;
         errorObj.message = message;
@@ -153,4 +158,4 @@ const ErrorHandler = {
     }
 }
 
-export { ERRORS, ErrorHandler };
+export { ERRORS, ERROR_CODES, ErrorHandler };

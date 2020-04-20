@@ -20,7 +20,7 @@
           <!--  -->
         </div>
         <div class="color1166ff">
-          {{ $t('lang.main.balance') }}<span class="bold">{{ selBalance === '' ? '' : Number(selBalance).toFixed(6) }}</span>
+          {{ $t('lang.main.balance') }}<span class="bold">{{ selAsset.balance === '' ? '' : Number(selAsset.balance).toFixed(6) }}</span>
         </div>
       </div>
       <div>
@@ -211,12 +211,10 @@ export default {
       isProcessing: false,
       coinArr: [],
       selCoin: "",
-      selBalance: "",
       popupVisible: false,
       popupVisible1: false,
       popupVisible2: false,
       popupTitle: "",
-      initCoinArr: [],
       clickNum: 0, //立即支付按钮
       walletAddr: "",
       form: {
@@ -254,22 +252,22 @@ export default {
   methods: {
     blurAddrCheckEv() {
       console.log('blurAddrCheck', this.form.addr)
-      this.getFee();
+      this.getBalanceAndFee();
     },
     transferAllEv() {
       console.log(`coin: ${this.selCoin}, fee: ${this.fee} ${this.feeCoin}`);
       if (this.selCoin == this.feeCoin) {
-        if (Number(this.selBalance) < Number(this.fee)) {
+        if (Number(this.selAsset.balance) < Number(this.fee)) {
           Toast({
             message: this.$t('lang.main.feeNotEnough')
           });
           return;
         } else {
-          let value = Number(this.selBalance) - Number(this.fee);
+          let value = Number(this.selAsset.balance) - Number(this.fee);
           this.form.value = Math.floor(value * 1000000) / 1000000;
         }
       } else {
-        this.form.value = this.selBalance;
+        this.form.value = this.selAsset.balance;
         for (let i = 0; i < this.coinArr.length; i++) {
           if (this.coinArr[i].symbol == this.feeCoin) {
             if (Number(this.coinArr[i].balance) < Number(this.fee)) {
@@ -283,14 +281,15 @@ export default {
       }
     },
     selCoinEv(item) {
-      this.selCoin = item.symbol;
-      this.selBalance = item.balance;
+      this.selAsset = item;
     },
-    getFee() {
+    getBalanceAndFee() {
       this.PopupAPI.getSelectedAccountBalance(this.selCoin).then(async (res) => {
         console.log('balance for fee:', res);
         let { token, balance, fiatValue, fees, feeToken } = res;
         // this.selAsset = { token, balance, fiatValue, feeToken };
+        this.selAsset.balance = balance;
+        this.selAsset.fiatValue = fiatValue;
         this.feeCoin = feeToken;
         if (!Array.isArray(fees) || fees.length == 0) {
           return;
@@ -362,12 +361,12 @@ export default {
 
       console.log(`coin: ${this.selCoin}, fee: ${this.fee} ${this.feeCoin}`);
       if (this.selCoin == this.feeCoin) {
-        if (Number(this.selBalance) < Number(this.fee)) {
+        if (Number(this.selAsset.balance) < Number(this.fee)) {
           Toast({
             message: this.$t('lang.main.feeNotEnough')
           });
           return;
-        } else if (Number(this.selBalance) <
+        } else if (Number(this.selAsset.balance) <
             Number(this.fee) + Number(this.form.value)
           ) {
           Toast({
@@ -387,7 +386,7 @@ export default {
             message: this.$t('lang.main.feeNotEnough')
           });
           return;
-        } else if (Number(this.selBalance) < Number(this.form.value)) {
+        } else if (Number(this.selAsset.balance) < Number(this.form.value)) {
           Toast({
             message: this.$t('lang.main.valueTooBig')
           });
@@ -422,15 +421,15 @@ export default {
         this.form.value,
         this.form.note
       ).then(result => {
+        console.log('transfer result:', result);
         this.popupVisible1 = false;
-        console.log(result);
-        // this.getAccountAssets();
         this.isProcessing = false;
         Toast({
           message: this.$t('lang.main.transferSuccess'),
           position: "top",
           iconClass: "mintui mintui-success"
         });
+        // this.getBalanceAndFee();
       }).catch(err => {
         console.log('transfer error:', err)
         this.isProcessing = false;
@@ -463,7 +462,6 @@ export default {
 
           if (symbol === this.selCoin) {
             this.selAsset = item;
-            this.selBalance = item.balance;
           }
           this.coinArr.push(item);
         });

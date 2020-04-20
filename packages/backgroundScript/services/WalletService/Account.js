@@ -30,7 +30,7 @@ class Account {
 
     _importMnemonic(mnemonic, accountIndex) {
         if (!this.network) {
-            ErrorHandler.throwError({ code: ERRORS.INVALID_PARAMS, data: 'Network not set' });
+            ErrorHandler.throwError({ id: ERRORS.INVALID_PARAMS, data: 'Network not set' });
         }
         try {
             // this.mnemonic = mnemonic;
@@ -45,7 +45,7 @@ class Account {
 
     _importPrivateKey(privateKey) {
         if (!this.network) {
-            ErrorHandler.throwError({ code: ERRORS.INVALID_PARAMS, data: 'Network not set' });
+            ErrorHandler.throwError({ id: ERRORS.INVALID_PARAMS, data: 'Network not set' });
         }
         try {
             this.privateKey = privateKey;
