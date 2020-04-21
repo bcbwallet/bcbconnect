@@ -869,7 +869,7 @@ class Wallet extends EventEmitter {
     async getSelectedAccountBalanceFromNode(token) {
         logger.info('Get balance from node');
 
-        let address = this.getChainAddress(this.getSelectedAccountAddress());
+        let address = this.getSelectedAccountAddress();
         let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
 
         let value = await NodeService.getBalance(address, tokenAddress);
@@ -881,7 +881,7 @@ class Wallet extends EventEmitter {
     async getSelectedAccountBalanceFromProvider(token) {
         logger.info('Get balance from provider');
 
-        let address = this.getChainAddress(this.getSelectedAccountAddress());
+        let address = this.getSelectedAccountAddress();
         let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
 
         let { balance, fiatValue, fees } = await this.walletProvider.getBalance(address, tokenAddress);
@@ -986,7 +986,7 @@ class Wallet extends EventEmitter {
 
         const assets = this.assets;
         if (this.walletProvider) {
-            let address = this.getChainAddress(this.getSelectedAccountAddress());
+            let address = this.getSelectedAccountAddress();
             let accountAssets = await this.walletProvider.getAccountAssets(address);
 
             // console.log('updated assets', accountAssets)
@@ -1047,7 +1047,7 @@ class Wallet extends EventEmitter {
         }
         let tokenAddress = await NodeService.getTokenAddressBySymbol(this.selectedToken);
 
-        let address = this.getChainAddress(this.getSelectedAccountAddress());
+        let address = this.getSelectedAccountAddress();
         let result = await this.walletProvider.getAccountTransactions(address, tokenAddress, page, pageSize);
         // logger.info('transactions:', result);
         return result;
@@ -1167,7 +1167,7 @@ class Wallet extends EventEmitter {
     }
 
     getSelectedAccountAddress() {
-        return this.accounts[this.selectedAccount].address;
+        return this.getChainAddress(this.accounts[this.selectedAccount].address);
     }
 
     getSelectedAccountDetails() {
@@ -1224,7 +1224,7 @@ class Wallet extends EventEmitter {
         this.checkTransactionDefaults(transaction);
         if (typeof transaction.nonce === 'undefined') {
             let nonce = await NodeService.getTransactionCount(
-                                this.getChainAddress(this.getSelectedAccountAddress()));
+                                this.getSelectedAccountAddress());
             transaction.nonce = (nonce + 1).toString();
         }
 

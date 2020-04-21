@@ -42,7 +42,8 @@ function injectPromise(func, ...args) {
         func(...args, (err, res) => {
             if(err)
                 reject(err);
-            else resolve(res);
+            else
+                resolve(res);
         });
     });
 }
