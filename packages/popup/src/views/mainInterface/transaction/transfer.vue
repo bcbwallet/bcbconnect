@@ -20,7 +20,7 @@
           <!--  -->
         </div>
         <div class="color1166ff">
-          {{ $t('lang.main.balance') }}<span class="bold">{{ selAsset.balance === '' ? '' : Number(selAsset.balance).toFixed(6) }}</span>
+          {{ $t('lang.main.balance') }}<span class="bold">{{ selAsset.balance === undefined ? '' : Number(selAsset.balance).toFixed(6) }}</span>
         </div>
       </div>
       <div>
