@@ -551,7 +551,7 @@ const NodeService = {
             ErrorHandler.throwError(this._nodeError(resp.error));
         }
         if (!resp.result) {
-            ErrorHandler.throwError({ id: SERVER_ERROR, data: resp });
+            ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: resp });
         }
     },
 
