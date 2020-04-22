@@ -1,6 +1,6 @@
 import Events from 'jts-events';
 import { MessageBox } from 'mint-ui';
-import { PopupAPI } from '@bcblink/lib/api';
+import { PopupAPI } from '@bcbconnect/lib/api';
 import Utils from '../../utils/utils.js';
 
 import Loading from '../../components/loading';

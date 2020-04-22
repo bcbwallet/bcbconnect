@@ -373,6 +373,8 @@ export default {
 			margin-bottom:35px
 		>div
 			margin-bottom:28px
+		label
+			padding-right:12px
 	.createWallet-foot
 		width:300px
 		overflow:hidden

@@ -8,9 +8,9 @@ import "mint-ui/lib/style.css";
 import "./assets/css/reset.css";
 import "./assets/css/common.styl";
 
-import { PopupAPI } from "@bcblink/lib/api";
-import MessageDuplex from "@bcblink/lib/MessageDuplex";
-import { APP_STATE } from "@bcblink/lib/constants";
+import { PopupAPI } from "@bcbconnect/lib/api";
+import MessageDuplex from "@bcbconnect/lib/MessageDuplex";
+import { APP_STATE } from "@bcbconnect/lib/constants";
 
 import VueI18n from "vue-i18n";
 

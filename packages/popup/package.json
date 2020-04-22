@@ -1,6 +1,6 @@
 {
-    "name": "@bcblink/popup",
-    "version": "0.8.0",
+    "name": "@bcbconnect/popup",
+    "version": "2.0.0",
     "private": true,
     "scripts": {
         "serve": "vue-cli-service serve --mode development",

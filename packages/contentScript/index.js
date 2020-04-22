@@ -1,6 +1,6 @@
-import MessageDuplex from '@bcblink/lib/MessageDuplex';
-import EventChannel from '@bcblink/lib/EventChannel';
-import Logger from '@bcblink/lib/logger';
+import MessageDuplex from '@bcbconnect/lib/MessageDuplex';
+import EventChannel from '@bcbconnect/lib/EventChannel';
+import Logger from '@bcbconnect/lib/logger';
 import extensionizer from 'extensionizer';
 
 const logger = new Logger('contentScript');
@@ -10,7 +10,7 @@ const contentScript = {
     eventChannel: new EventChannel('contentScript'),
 
     init() {
-        logger.info('Initialising BcbLink');
+        logger.info('Initialising BcbConnect');
 
         this.registerListeners();
         this.inject();
@@ -47,7 +47,7 @@ const contentScript = {
             injectionSite.children[ 0 ]
         );
 
-        logger.info('BcbLink injected');
+        logger.info('BcbConnect injected');
     }
 };
 

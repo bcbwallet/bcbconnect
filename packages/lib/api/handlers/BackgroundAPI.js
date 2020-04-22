@@ -1,4 +1,4 @@
-import { APP_STATE } from '@bcblink/lib/constants';
+import { APP_STATE } from '@bcbconnect/lib/constants';
 
 export default {
     appReady: false,

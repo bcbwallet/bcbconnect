@@ -17,12 +17,12 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'BCB Wallet'
-copyright = '2019, BCB Wallet Developers'
-author = 'BCB Wallet Developers'
+project = 'BCB Connect'
+copyright = '2019, BCB Connect Developers'
+author = 'BCB Community Developers'
 
 # The full version, including alpha/beta/rc tags
-release = '1.10.0'
+release = '2.0.0'
 
 
 # -- General configuration ---------------------------------------------------

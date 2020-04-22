@@ -1,15 +1,15 @@
-import Logger from '@bcblink/lib/logger';
-import MessageDuplex from '@bcblink/lib/MessageDuplex';
+import Logger from '@bcbconnect/lib/logger';
+import MessageDuplex from '@bcbconnect/lib/MessageDuplex';
 import NodeService from './services/NodeService';
 import StorageService from './services/StorageService';
 import WalletService from './services/WalletService';
 
-import { requestHandler } from '@bcblink/lib/common';
-import { CONFIRMATION_TYPE, APP_STATE } from '@bcblink/lib/constants';
-import { BackgroundAPI } from '@bcblink/lib/api';
+import { requestHandler } from '@bcbconnect/lib/common';
+import { CONFIRMATION_TYPE, APP_STATE } from '@bcbconnect/lib/constants';
+import { BackgroundAPI } from '@bcbconnect/lib/api';
 import extensionizer from 'extensionizer';
 import axios from 'axios';
-import { ERRORS, ErrorHandler } from '@bcblink/lib/errors';
+import { ERRORS, ErrorHandler } from '@bcbconnect/lib/errors';
 
 const duplex = new MessageDuplex.Host();
 const logger = new Logger('backgroundScript');

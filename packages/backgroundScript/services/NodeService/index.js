@@ -1,13 +1,13 @@
-import Logger from '@bcblink/lib/logger';
+import Logger from '@bcbconnect/lib/logger';
 import StorageService from '../StorageService';
 import UUID from 'uuid/v4';
 import { Base64 } from 'js-base64';
 import { sha3_256 } from 'js-sha3';
 import axios from 'axios';
 
-import { hexlify, arrayify, concat } from '@bcblink/lib/bytes';
-import { deepCopy, sleep } from '@bcblink/lib/common';
-import { ERRORS, ErrorHandler } from '@bcblink/lib/errors';
+import { hexlify, arrayify, concat } from '@bcbconnect/lib/bytes';
+import { deepCopy, sleep } from '@bcbconnect/lib/common';
+import { ERRORS, ErrorHandler } from '@bcbconnect/lib/errors';
 
 const logger = new Logger('NodeService');
 
@@ -31,6 +31,9 @@ const publicNetworks = {
 };
 
 const NodeService = {
+    // keep on reset
+    networks: {},
+
     init() {
         logger.info('init');
 
@@ -43,14 +46,15 @@ const NodeService = {
     },
 
     reset() {
-        this.networks = {};
+        logger.info('reset');
+
         this.network = false;
         this.chain = false;
 
         // nodes of current chain and all custom nodes
         this.nodes = {};
         this.selectedNode = false;
-        this.updating = false;
+        this.updatingNode = false;
         this.nodeStats = {};
 
         this._resetCache();
@@ -59,6 +63,7 @@ const NodeService = {
 
     _resetCache() {
         logger.info('reset cache');
+
         this.cache = {
             tokenAddress: {},
             tokenSymbol: {}
@@ -74,6 +79,7 @@ const NodeService = {
         }
 
         const networks = StorageService.getNetworks();
+        console.log('networks from storage', networks)
         this.networks = Object.keys(networks).length ? networks : deepCopy(publicNetworks);
 
         let chainOpts = StorageService.getSelectedChain();
@@ -176,10 +182,6 @@ const NodeService = {
     async _updateChainsOfNetwork(network) {
         logger.info(`update chains of network ${network}`);
 
-        if (!(network in this.networks)) {
-            ErrorHandler.throwError({ id: ERRORS.WRONG_NETWORK_ID, data: network });
-        }
-
         let nodeUrl = this.networks[network].urls[0];
         let chainIds = await this.getChainIds(nodeUrl);
         let chains = [];
@@ -201,7 +203,7 @@ const NodeService = {
     async _updateNodes() {
         logger.info(`Update nodes for ${this.network}[${this.chain}]`);
 
-        this.updating = true;
+        this.updatingNode = true;
         try {
             let nodeUrl = await this.getSeedNodeUrl(this.network);
             let chainId = this.getChainId();
@@ -240,9 +242,9 @@ const NodeService = {
                 await this._autoSelectNode();
             }
 
-            this.updating = false;
+            this.updatingNode = false;
         } catch (err) {
-            this.updating = false;
+            this.updatingNode = false;
             throw err;
         }
     },
@@ -269,7 +271,7 @@ const NodeService = {
     _switchNode() {
         logger.info('Switch node in', this.nodes);
 
-        if (this.updating) {
+        if (this.updatingNode) {
             return;
         }
         if (!this.nodes) {
@@ -381,11 +383,12 @@ const NodeService = {
         logger.info(`Get chains of network ${network}`);
 
         if (!(network in this.networks)) {
-            errros.throwError({ id: ERRORS.WRONG_NETWORK_ID, data: `Unknown network ${network}` });
+            ErrorHandler.throwError({ id: ERRORS.WRONG_NETWORK_ID, data: `Unknown network ${network}` });
         }
         await this._updateChainsOfNetwork(network).catch(err => {
-            logger.error(`Failed to update chains of network ${network}: ${err}`);
+            logger.error(`Failed to update chains of network ${network}:`, err);
         });
+
         return this.networks[network].chains;
     },
 
@@ -586,7 +589,7 @@ const NodeService = {
                     reject(ErrorHandler.newError({ id: ERRORS.SERVER_ERROR, data: `HTTP response ${resp.status} -- ${url}` }));
                 }
             }).catch (err => {
-                logger.info(`Node request error: ${err}`);
+                logger.info('Node request error:', err);
                 reject(ErrorHandler.newError({ id: ERRORS.NETWORK_ERROR, data: err }));
             });
         });

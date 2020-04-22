@@ -1,10 +1,10 @@
 {
-  "name": "@bcblink/inPageScript",
+  "name": "@bcbconnect/inPageScript",
   "main": "index.js",
   "repository": "",
   "author": "",
   "private": true,
-  "version": "0.8.0",
+  "version": "2.0.0",
   "scripts": {
     "build": "webpack --config ../../webpack.config.js --progress --colors -o ../../dist/inPageScript.js",
     "lint": "npx eslint . --fix"

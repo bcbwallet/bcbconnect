@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3';
 import UUIDv4 from 'uuid/v4';
-import Logger from '@bcblink/lib/logger';
+import Logger from '@bcbconnect/lib/logger';
 import extensionizer from 'extensionizer';
 
 const logger = new Logger('MessageDuplex.Host');

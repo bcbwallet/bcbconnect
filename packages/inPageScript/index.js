@@ -1,9 +1,9 @@
-import EventChannel from '@bcblink/lib/EventChannel';
-import Logger from '@bcblink/lib/logger';
+import EventChannel from '@bcbconnect/lib/EventChannel';
+import Logger from '@bcbconnect/lib/logger';
 import RequestHandler from './handlers/RequestHandler';
 
-import { injectPromise } from '@bcblink/lib/common';
-import { ethToBcbAddress, bcbToEthAddress } from '@bcblink/lib/address';
+import { injectPromise } from '@bcbconnect/lib/common';
+import { ethToBcbAddress, bcbToEthAddress } from '@bcbconnect/lib/address';
 
 const logger = new Logger('inPageScript');
 

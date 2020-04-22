@@ -1,5 +1,5 @@
 import { Popup, MessageBox } from 'mint-ui';
-import { PopupAPI } from '@bcblink/lib/api';
+import { PopupAPI } from '@bcbconnect/lib/api';
 
 export default {
     name: 'AssetModal',

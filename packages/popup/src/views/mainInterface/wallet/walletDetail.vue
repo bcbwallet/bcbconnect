@@ -304,7 +304,7 @@ export default {
 						>div
 							&:first-child
 								// margin-left: 30px;
-								margin-right: 58px;
+								margin-right: 40px;
 					&:last-child
 						>div
 							&:first-child

@@ -1,7 +1,7 @@
-import Logger from '@bcblink/lib/logger';
+import Logger from '@bcbconnect/lib/logger';
 import axios from 'axios';
 import StorageService from '../StorageService';
-import { ERRORS, ErrorHandler } from '@bcblink/lib/errors';
+import { ERRORS, ErrorHandler } from '@bcbconnect/lib/errors';
 
 const logger = new Logger('WalletProvider');
 
@@ -45,6 +45,10 @@ class WalletProvider {
         return providedNetworks[this.network].token;
     }
 
+    get isMainNet() {
+        return this.network === 'bcb';
+    }
+
     get isSideChain() {
         return this.network !== this.chain;
     }
@@ -60,7 +64,7 @@ class WalletProvider {
                     reject(ErrorHandler.newError({ id: ERRORS.SERVER_ERROR, data: `HTTP response ${result.status} -- ${url}` }));
                 }
             }).catch (err => {
-                logger.info(`Wallet provider request error: ${err}`);
+                logger.info('Wallet provider request error:', err);
                 reject(ErrorHandler.newError({ id: ERRORS.NETWORK_ERROR, data: err }));
             });
         });

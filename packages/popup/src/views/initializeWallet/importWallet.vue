@@ -449,9 +449,11 @@ export default {
 				color: #fff;
 	.network
 		margin-bottom:10px
+		label
+			padding-right:12px
 	.iw-body
 		padding-top:24px
-		height: 491px;
+		height: 400px;
 		textarea
 			background: #f7f7f7;
 			border: 1px solid #EDEDED;

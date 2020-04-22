@@ -200,7 +200,7 @@ Vue.component(Popup.name, Popup);
 Vue.component(Spinner.name, Spinner);
 import { directive as clickOutside } from "v-click-outside-x";
 
-import { isSideChainAddress, chainOfAddress } from "@bcblink/lib/address";
+import { isSideChainAddress, chainOfAddress } from "@bcbconnect/lib/address";
 
 export default {
   name: "transfer",
@@ -232,22 +232,14 @@ export default {
       defaultCoinIcon: require('../../../assets/images/main/coin.png')
     };
   },
-  created() {
+  async created() {
     this.selChainId = this.$route.params.chainId;
     this.walletAddr = this.$store.state.account.address;
-    if (!this.walletAddr) {
-      this.PopupAPI.getSelectedAccount().then(res => {
-        this.walletAddr = res.address;
-      });
-    }
-    this.PopupAPI.getCurrency().then(res => {
-      this.selCurrency = res;
-    });
-    this.PopupAPI.getSelectedToken().then(res => {
-      this.selCoin = res;
-    });
 
-    this.initData();
+    this.selCurrency = await this.PopupAPI.getCurrency();
+    this.selCoin = await this.PopupAPI.getSelectedToken();
+
+    await this.initData();
   },
   methods: {
     blurAddrCheckEv() {
@@ -283,10 +275,11 @@ export default {
     selCoinEv(item) {
       this.selAsset = item;
     },
-    getBalanceAndFee() {
-      this.PopupAPI.getSelectedAccountBalance(this.selCoin).then(async (res) => {
-        console.log('balance for fee:', res);
-        let { token, balance, fiatValue, fees, feeToken } = res;
+    async getBalanceAndFee() {
+      try {
+        let result = await this.PopupAPI.getSelectedAccountBalance(this.selCoin);
+        console.log('balance for fee:', result);
+        let { token, balance, fiatValue, fees, feeToken } = result;
         // this.selAsset = { token, balance, fiatValue, feeToken };
         this.selAsset.balance = balance;
         this.selAsset.fiatValue = fiatValue;
@@ -308,9 +301,9 @@ export default {
             this.fee = info.bcbFee;
           }
         });
-      }).catch(err => {
+      } catch(err) {
         console.log('get balance for fee error', err)
-      });
+      }
     },
     focusSingle(item) {
       this.form.addr = item;
@@ -405,7 +398,7 @@ export default {
     onClickoutside1() {
       this.focusShow = false;
     },
-    gotoPay() {
+    async gotoPay() {
       if (this.isProcessing == true) {
         Toast({
           message: this.$t('lang.main.payingWait')
@@ -415,12 +408,13 @@ export default {
       this.isProcessing = true;
 
       console.log(this.form.note);
-      this.PopupAPI.transfer(
-        this.selCoin,
-        this.form.addr,
-        this.form.value,
-        this.form.note
-      ).then(result => {
+      try {
+        let result = await this.PopupAPI.transfer(
+          this.selCoin,
+          this.form.addr,
+          this.form.value,
+          this.form.note
+        );
         console.log('transfer result:', result);
         this.popupVisible1 = false;
         this.isProcessing = false;
@@ -429,14 +423,14 @@ export default {
           position: "top",
           iconClass: "mintui mintui-success"
         });
-        // this.getBalanceAndFee();
-      }).catch(err => {
+        await this.getBalanceAndFee();
+      } catch (err) {
         console.log('transfer error:', err)
         this.isProcessing = false;
         Toast({
           message: this.$t('lang.main.transferFail')
         });
-      });
+      }
     },
     close() {
       this.popupVisible = false;
@@ -449,8 +443,9 @@ export default {
     onClickoutside() {
       this.selActive = false;
     },
-    getAccountAssets() {
-      this.PopupAPI.getSelectedAccountAssets().then(result => {
+    async getAccountAssets() {
+      try {
+        let result = await this.PopupAPI.getSelectedAccountAssets();
         console.log('account assets2:', result);
         this.coinArr = [];
         Object.entries(result).forEach(([symbol, info]) => {
@@ -468,15 +463,15 @@ export default {
         console.log('coinArr:', this.coinArr);
         console.log('selAsset', this.selAsset);
         this.loading = false;
-      }).catch(err => {
+      } catch(err) {
         this.loading = false;
         Toast({
           message: err.message
         });
-      });
+      }
     },
-    initData() {
-      this.getAccountAssets();
+    async initData() {
+      await this.getAccountAssets();
     }
   }
 };

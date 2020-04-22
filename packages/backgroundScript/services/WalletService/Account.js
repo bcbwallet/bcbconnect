@@ -1,12 +1,12 @@
 import StorageService from '../StorageService';
-import Logger from '@bcblink/lib/logger';
-import { ERRORS, ErrorHandler } from '@bcblink/lib/errors';
+import Logger from '@bcbconnect/lib/logger';
+import { ERRORS, ErrorHandler } from '@bcbconnect/lib/errors';
 
-import '@bcblink/lib/bcbjs';
+import '@bcbconnect/lib/bcbjs';
 
 import {
     ACCOUNT_TYPE
-} from '@bcblink/lib/constants';
+} from '@bcbconnect/lib/constants';
 
 const logger = new Logger('WalletService/Account');
 

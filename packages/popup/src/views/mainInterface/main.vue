@@ -487,7 +487,7 @@ export default {
             return this.$store.state.account;
         },
         homeText() {
-            return this.$t('lang.main.assets');
+            return this.$t('lang.main.home');
         },
         accountsText() {
             return this.$t('lang.main.accounts');

@@ -1,7 +1,7 @@
 import extensionizer from 'extensionizer';
-import Logger from '@bcblink/lib/logger';
-import Utils from '@bcblink/lib/utils';
-import { ERRORS, ErrorHandler } from '@bcblink/lib/errors';
+import Logger from '@bcbconnect/lib/logger';
+import Utils from '@bcbconnect/lib/utils';
+import { ERRORS, ErrorHandler } from '@bcbconnect/lib/errors';
 
 const logger = new Logger('StorageService');
 
@@ -108,7 +108,7 @@ const StorageService = {
                 );
             }
         } catch (err) {
-            logger.warn(`Failed to decrypt wallet ${err}`);
+            logger.warn('Failed to decrypt wallet:', err);
             ErrorHandler.throwError(ERRORS.WRONG_PASSWORD);
         }
 

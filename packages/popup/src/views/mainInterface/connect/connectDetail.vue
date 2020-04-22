@@ -131,7 +131,7 @@
   </div>
 </template>
 <script>
-import { CONFIRMATION_TYPE } from "@bcblink/lib/constants";
+import { CONFIRMATION_TYPE } from "@bcbconnect/lib/constants";
 import { directive as clickOutside } from "v-click-outside-x";
 export default {
   directives: { clickOutside },
