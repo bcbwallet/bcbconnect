@@ -1,4 +1,4 @@
-# BCB Wallet Browser Extension
+# BCB Connect
 
 ## Web API
 
