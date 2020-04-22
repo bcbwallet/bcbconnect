@@ -7,8 +7,7 @@
   "author": "BCB Community",
   "content_security_policy": "script-src 'self'; object-src 'self'",
   "permissions": [
-      "storage",
-      "clipboardWrite"
+      "storage"
   ],
   "browser_action": {
       "default_popup": "packages/popup/dist/index.html",
