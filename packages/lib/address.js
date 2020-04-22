@@ -2,6 +2,7 @@ import hash from 'hash.js';
 
 import { toUtf8Bytes, toUtf8String, hexlify, arrayify, concat } from './bytes';
 import { Base58 } from './basex';
+import { ERRORS, ErrorHandler } from '@bcbconnect/lib/errors';
 
 function getMainAddress(address, chainOpts) {
     if (!address) return;
@@ -49,39 +50,47 @@ function chainOfAddress(address) {
 function ethToBcbAddress(ethAddress, chainOpts) {
     let { network, chain } = chainOpts;
     if (network == null) {
-        throw new Error('Invaid chain options');
+        ErrorHandler.throwError(ERRORS.WRONG_NETWORK_ID);
     }
-    let chainId = network;
-    if (network !== chain && chain) {
-        chainId += '[' + chain + ']';
-    }
+    try {
+        let chainId = network;
+        if (network !== chain && chain) {
+            chainId += '[' + chain + ']';
+        }
 
-    let ethAddressBytes = arrayify(ethAddress);
-    ethAddressBytes = ethAddressBytes.slice(-20);
-  
-    let t = hash.ripemd160().update(ethAddressBytes).digest();
-    let checksum = arrayify(hash.utils.toHex(t));
-    let comb = concat([ethAddressBytes, checksum.slice(0, 4)]);
-    let b58 = Base58.encode(comb);
-    return chainId + b58;
+        let ethAddressBytes = arrayify(ethAddress);
+        ethAddressBytes = ethAddressBytes.slice(-20);
+    
+        let t = hash.ripemd160().update(ethAddressBytes).digest();
+        let checksum = arrayify(hash.utils.toHex(t));
+        let comb = concat([ethAddressBytes, checksum.slice(0, 4)]);
+        let b58 = Base58.encode(comb);
+        return chainId + b58;
+    } catch (err) {
+        ErrorHandler.throwError({ id: ERRORS.INVALID_PARAMS, data: err });
+    }
 }
 
 function bcbToEthAddress(address, chainOpts) {
     let { network, chain } = chainOpts;
     if (network == null) {
-        throw new Error('Invaid chain options');
+        ErrorHandler.throwError(ERRORS.WRONG_NETWORK_ID);
     }
-    let chainId = network;
-    if (network !== chain && chain) {
-        chainId += '[' + chain + ']';
-    }
-    if(address.indexOf(chainId) !== 0) {
-        throw new Error('Chain id mismatch');
-    }
+    try {
+        let chainId = network;
+        if (network !== chain && chain) {
+            chainId += '[' + chain + ']';
+        }
+        if(address.indexOf(chainId) !== 0) {
+            ErrorHandler.throwError(ERRORS.WRONG_CHAIN_ID);
+        }
 
-    let rawB58 = address.slice(chainId.length);
-    let raw = Base58.decode(rawB58);
-    return hexlify(raw.slice(0, 20));
+        let rawB58 = address.slice(chainId.length);
+        let raw = Base58.decode(rawB58);
+        return hexlify(raw.slice(0, 20));
+    } catch (err) {
+        ErrorHandler.throwError({ id: ERRORS.INVALID_PARAMS, data: err });
+    }
 }
 
 export { getMainAddress, getChainAddress, isSideChainAddress, chainOfAddress, ethToBcbAddress, bcbToEthAddress };

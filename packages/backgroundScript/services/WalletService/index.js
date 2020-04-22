@@ -1236,8 +1236,12 @@ class Wallet extends EventEmitter {
     }
 
     async signMessage(message) {
-        let result = await this.accounts[this.selectedAccount].signMessage(message);
-        return result;
+        try {
+            let result = await this.accounts[this.selectedAccount].signMessage(message);
+            return result;
+        } catch (err) {
+            ErrorHandler.throwError({ id: ERRORS.INVALID_PARAMS, data: err });
+        }
     }
 
     checkTransactionDefaults(transaction) {
@@ -1266,8 +1270,12 @@ class Wallet extends EventEmitter {
             transaction.nonce = (nonce + 1).toString();
         }
 
-        let signedTx = await this.accounts[this.selectedAccount].signTransaction(transaction);
-        return signedTx;
+        try {
+            let signedTx = await this.accounts[this.selectedAccount].signTransaction(transaction);
+            return signedTx;
+        } catch (err) {
+            ErrorHandler.throwError({ id: ERRORS.INVALID_PARAMS, data: err });
+        }
     }
 
     async sendTransaction(transaction) {
@@ -1332,7 +1340,11 @@ class Wallet extends EventEmitter {
 
     exportJsonWallet() {
         let password = StorageService.password;
-        return this.accounts[this.selectedAccount].exportJsonWallet(password);
+        try {
+            return this.accounts[this.selectedAccount].exportJsonWallet(password);
+        } catch (err) {
+            ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: err });
+        }
     }
 
 }
