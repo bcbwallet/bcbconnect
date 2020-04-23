@@ -203,6 +203,9 @@ const NodeService = {
     async _updateNodes() {
         logger.info(`Update nodes for ${this.network}[${this.chain}]`);
 
+        if (this.updatingNode) {
+            return;
+        }
         this.updatingNode = true;
         try {
             let nodeUrl = await this.getSeedNodeUrl(this.network);
@@ -320,7 +323,6 @@ const NodeService = {
         if (nodeInfo.isSideChain) {
             url = nodeInfo.mainUrls[0];
         }
-        // Allow overide ?
         if (this.networks && this.networks.hasOwnProperty(network)) {
             ErrorHandler.throwError(ERRORS.NETWORK_EXISTS);
         }
@@ -374,7 +376,7 @@ const NodeService = {
         let networks = {};
         Object.entries(this.networks).forEach(([ networkId, network ]) => {
             let { name, chains } = network;
-            networks[networkId] = { name, chains, default: network.public };
+            networks[networkId] = { name, chains, public: network.public };
         });
         return networks;
     },
@@ -489,9 +491,7 @@ const NodeService = {
         logger.info('networks:', this.networks);
 
         let url;
-        let keys = Object.keys(this.networks);
-        for (let i = 0; i < keys.length; i++) {
-            let key = keys[i];
+        for (const key in this.networks) {
             if (key === network) {
                 url = this.networks[key].urls[0];
                 if (!this._isSideChain()) {

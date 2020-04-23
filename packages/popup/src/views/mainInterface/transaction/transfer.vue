@@ -273,6 +273,7 @@ export default {
       }
     },
     selCoinEv(item) {
+      this.selCoin = item.symbol;
       this.selAsset = item;
     },
     async getBalanceAndFee() {
