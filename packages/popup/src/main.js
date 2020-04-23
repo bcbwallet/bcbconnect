@@ -37,7 +37,8 @@ Promise.all([
   onNewState(appState);
 
   if (!locale) {
-    locale = 'en-US';
+    locale = ["en-US", "zh-CN"].includes(window.navigator.language) ?
+      window.navigator.language : 'en-US';
   }
 
   Vue.use(VueI18n);
