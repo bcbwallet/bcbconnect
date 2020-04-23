@@ -31,8 +31,8 @@ export default {
         // 提交数据
         async submit() {
             let { name, url, chainId } = this;
-            if (!name) return MessageBox.alert('Empty network name');
-            if (!url) return MessageBox.alert('Empty node url');
+            if (!name) return MessageBox.alert(this.$t('lang.network.enterNetworkName'));
+            if (!url) return MessageBox.alert(this.$t('lang.network.enterNodeUrl'));
 
             try {
                 let data = { name, url, chainId };
@@ -41,11 +41,8 @@ export default {
                 let result = await PopupAPI.addNetwork(data);
                 this.isLoading = false;
                 // console.log('addNetwork result:', result);
-                if (!result) MessageBox.alert('Add network failed');
-                else {
-                    this.$emit('close', false);
-                    this.$emit('submit', result);
-                }
+                this.$emit('close', false);
+                this.$emit('submit', result);
             } catch (error) {
                 console.log('addNetwork error:', error);
                 MessageBox.alert(error.message);

@@ -330,7 +330,7 @@ export const lang = {
 		"enterRepeatPwd":"Repeat new password",
 		"confirm":"Confirm",
 		"save":"Save",
-		"notEmpty":"The input field cannot be empty",
+		"emptyPwd":"Empty password",
 		"changePwdSuccess":"Successfully changed password"
 	},
 	"selectNode":{
@@ -430,7 +430,7 @@ export const lang = {
 		"deleteText":"If not backed up, you will lose this account balance after deletion",
 		"confirm":"Confirm",
 		"cancel":"Cancel",
-		"walletNameNotEmpty":"Wallet name cannot be empty",
+		"enterWalletName":"Enter wallet name",
 		"saveSuccess":"Saved successfully",
 		"atLeastOneAddr":"Keep at least one address",
 		"deleteSuccess":"Deleted successfully"

@@ -26,17 +26,14 @@ export default {
         // 提交数据
         async submit() {
             let symbol = this.symbol;
-            if (!symbol) return MessageBox.alert('Empty token symbol');
+            if (!symbol) return MessageBox.alert(this.$t('lang.main.enterTokenSymbol'));
 
             try {
                 let result = await PopupAPI.addAsset(symbol);
                 // console.log('addAsset result:', result);
-                if (!result) MessageBox.alert('Add token failed');
-                else {
-                    MessageBox.alert('Add token successfully');
-                    this.$emit('close', false);
-                    this.$emit('submit');
-                }
+
+                this.$emit('close', false);
+                this.$emit('submit');
             } catch (error) {
                 console.log('addAsset error:', error);
                 MessageBox.alert(error.message);

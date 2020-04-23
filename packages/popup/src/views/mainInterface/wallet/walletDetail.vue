@@ -215,7 +215,7 @@ export default {
       }
       if (_this.walletName.trim() == "") {
         Toast({
-          message: this.$t("lang.walletDetail.walletNameNotEmpty")
+          message: this.$t("lang.walletDetail.enterWalletName")
         });
         return;
       }

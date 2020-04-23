@@ -224,7 +224,7 @@ export default {
       },
       focusShow: false,
       toAddrArr: [],
-      fee: 0,
+      fee: "",
       selChainId: "",
       feeShow: true,
       selAsset: {},
@@ -275,6 +275,8 @@ export default {
     selCoinEv(item) {
       this.selCoin = item.symbol;
       this.selAsset = item;
+      this.fee = "";
+      this.feeCoin = "";
     },
     async getBalanceAndFee() {
       try {
@@ -297,11 +299,11 @@ export default {
           chain = chainOpts.network;
         }
         console.log('to chain:', chain)
-        fees.forEach(info => {
-          if (info.chainid == chain) {
-            this.fee = info.bcbFee;
+        for (const feeInfo of fees) {
+          if (feeInfo.chainid == chain) {
+            this.fee = feeInfo.bcbFee;
           }
-        });
+        }
       } catch(err) {
         console.log('get balance for fee error', err)
       }

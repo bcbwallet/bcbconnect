@@ -80,7 +80,7 @@ export default {
       let _this = this;
       if (!(_this.form.newPwd && _this.form.rePwd && _this.form.oldPwd)) {
         Toast({
-          message: this.$t('lang.setting.notEmpty')
+          message: this.$t('lang.setting.emptyPwd')
         });
         return;
       }

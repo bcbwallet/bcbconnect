@@ -331,7 +331,7 @@ export const lang = {
 		"enterRepeatPwd":"重复输入新密码",
 		"save":"保存",
 		"confirm":"确定",
-		"notEmpty":"输入框不能为空",
+		"emptyPwd":"密码为空",
 		"changePwdSuccess":"修改密码成功,请重新登录"
 	},
 	"selectNode":{
@@ -431,7 +431,7 @@ export const lang = {
 		"deleteText":"未备份删除后将无法找回账户余额",
 		"confirm":"确认",
 		"cancel":"取消",
-		"walletNameNotEmpty":"钱包名称不能为空",
+		"enterWalletName":"输入钱包名称",
 		"saveSuccess":"保存成功",
 		"atLeastOneAddr":"至少要保留一个地址",
 		"deleteSuccess":"删除成功"
@@ -447,6 +447,6 @@ export const lang = {
 		"chainId": "链ID (可选)",
 		"enterChainId": "输入链ID",
 		"cancel": "取消",
-		"save": "保存",
+		"save": "保存"
 	}
 };
