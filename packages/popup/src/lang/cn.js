@@ -430,7 +430,7 @@ export const lang = {
 		"copy":"复制",
 		"sureSave":"请确认已备份助记词、私钥或Keystore",
 		"deleteText":"未备份删除后将无法找回账户余额",
-		"confirm":"确认",
+		"confirm":"确定",
 		"cancel":"取消",
 		"enterWalletName":"输入钱包名称",
 		"saveSuccess":"保存成功",
