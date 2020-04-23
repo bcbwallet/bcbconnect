@@ -1,3 +1,5 @@
+import { LANGUAGES } from '@bcbconnect/lib/constants';
+
 const ERRORS = {
     NOT_SETUP: 'NOT_SETUP',
     NOT_UNLOCKED: 'NOT_UNLOCKED',
@@ -111,7 +113,7 @@ const ErrorHandler = {
     language: 'en-US',
 
     setLanguage(language) {
-        if ([ 'en-US', 'zh-CN' ].includes(language)) {
+        if (LANGUAGES.includes(language)) {
             this.language = language;
         }
     },
