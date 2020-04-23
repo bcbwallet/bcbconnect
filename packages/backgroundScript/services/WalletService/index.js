@@ -936,13 +936,13 @@ class Wallet extends EventEmitter {
         return time - start;
     }
 
-    saveNetworkAssets(assets) {
-        logger.info('Saving network assets', assets);
+    saveNetworkAssets() {
+        logger.info('Saving network assets', this.assets);
         if (!this.network) {
             return false;
         }
         let allAssets = StorageService.getAssets();
-        allAssets[this.network] = assets;
+        allAssets[this.network] = this.assets;
         StorageService.saveAssets(allAssets);
         return true;
     }
@@ -955,7 +955,7 @@ class Wallet extends EventEmitter {
         }
 
         let changed = false;
-        let walletAssets = this.assets;
+        let walletAssets = deepCopy(this.assets);
         logger.info('current assets:', walletAssets);
         Object.keys(walletAssets).forEach(key => {
             if (assets.includes(key)) {
@@ -973,7 +973,7 @@ class Wallet extends EventEmitter {
         logger.info('new assets:', walletAssets, 'changed:', changed);
         if (changed) {
             this.assets = walletAssets;
-            this.saveNetworkAssets(this.assets);
+            this.saveNetworkAssets();
         }
     }
 
@@ -990,7 +990,7 @@ class Wallet extends EventEmitter {
 
     async addAsset(symbol, opts) {
         await this._addAsset(symbol, opts);
-        this.saveNetworkAssets(this.assets);
+        this.saveNetworkAssets();
         return true;
     }
 
@@ -1005,14 +1005,14 @@ class Wallet extends EventEmitter {
         });
 
         this.assets = assets;
-        this.saveNetworkAssets(this.assets);
+        this.saveNetworkAssets();
     }
 
     // Get account enabled assets
     async getSelectedAccountAssets() {
         logger.info('Get selected account assets', this.assets);
 
-        const assets = this.assets;
+        const assets = deepCopy(this.assets);
         if (this.walletProvider) {
             let address = this.getSelectedAccountAddress();
             let accountAssets = await this.walletProvider.getAccountAssets(address);
@@ -1023,13 +1023,11 @@ class Wallet extends EventEmitter {
                 // keep enabled
                 let enabled = assets[key] && assets[key].enabled;
                 assets[key] = { ...value };
+                assets[key].enabled = enabled;
                 if (typeof assets[key].source === 'undefined') {
                     assets[key].source = 'network';
                 }
                 assets[key].source = 'network';
-                if (enabled) {
-                    assets[key].enabled = true;
-                }
             });
             // Add default tokens
             if (this.walletProvider.isMainNet) {
@@ -1058,6 +1056,9 @@ class Wallet extends EventEmitter {
             if (key in defaultEnabledAssets && typeof assets[key].enabled === 'undefined') {
                 assets[key].enabled = true;
             }
+            if (key === this.selectedToken) {
+                assets[key].enabled = true;
+            }
             if (assets[key].enabled) {
                 if (assets[key].source === 'user') {
                     let result = await this.getSelectedAccountBalanceFromNode(key);
@@ -1066,7 +1067,9 @@ class Wallet extends EventEmitter {
                 enabledAssets[key] = assets[key];
             }
         }
-        this.saveNetworkAssets(assets);
+
+        this.assets = assets;
+        this.saveNetworkAssets();
         this.assetsUpdated = new Date().getTime();
 
         logger.info('enabled assets:', enabledAssets);

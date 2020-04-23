@@ -346,6 +346,7 @@ export const lang = {
 		"networkError":"网络异常",
 		"add":"添加",
 		"select": "选择",
+		"pick": "自选",
 		"gotoBcbscan":"BCBScan查看账户",
 		"copySuccess":"复制成功",
 		"selectCoin":"选择代币",

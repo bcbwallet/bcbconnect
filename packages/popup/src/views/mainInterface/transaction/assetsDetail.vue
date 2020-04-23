@@ -33,7 +33,7 @@
       class="threeBlueBtn flex flex-ai-c flex-jc-c bold m-auto cur-p colorfff"
       @click="gotoAddCoin"
     >
-      {{ $t('lang.main.add') }}
+      {{ $t('lang.main.pick') }}
     </div>
     <div class="common-load flex flex-ai-c flex-jc-c" v-if="loading">
       <div class="flex flex-ai-c flex-jc-c">

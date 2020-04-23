@@ -345,6 +345,7 @@ export const lang = {
 		"networkError":"Network error",
 		"add":"Add",
 		"select": "Select",
+		"pick": "Pick",
 		"gotoBcbscan":"View account on BCBScan",
 		"copySuccess":"Copied successfully",
 		"selectCoin":"Select token",
