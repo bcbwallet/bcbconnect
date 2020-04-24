@@ -477,12 +477,10 @@ const NodeService = {
     },
 
     async getSeedNodeUrl(network) {
-        logger.info('Get seed node for ', this.getChainId());
-        logger.info('networks:', this.networks);
+        logger.info('Get seed node for network ', this.getChainId());
 
-        let url;
         if (network in this.networks) {
-            url = this.networks[network].urls[0];
+            let url = this.networks[network].urls[0];
             if (!this._isSideChain()) {
                 return url;
             } else {
@@ -493,15 +491,10 @@ const NodeService = {
                 }
                 return nodeInfo.mainUrls[0];
             }
-        } else {
-            url = this.getDefaultNodeUrl(this.network);
         }
 
-        if (url) {
-            return url;
-        } else {
-            ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: `No default node for network: ${this.network}` })
-        }
+        logger.info('networks:', this.networks);
+        ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: `Out of band network: ${network}` });
     },
 
     fallbackToDefaultNodes() {
