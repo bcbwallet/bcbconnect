@@ -2,7 +2,7 @@ import StorageService from '../StorageService';
 import Logger from '@bcbconnect/lib/logger';
 import { ERRORS, ErrorHandler } from '@bcbconnect/lib/errors';
 
-import '@bcbconnect/lib/bcbjs';
+import '@bcbconnect/lib/bcbjs.min.js';
 
 import {
     ACCOUNT_TYPE

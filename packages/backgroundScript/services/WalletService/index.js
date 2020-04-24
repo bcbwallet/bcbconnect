@@ -4,13 +4,13 @@ import NodeService from '../NodeService';
 import StorageService from '../StorageService';
 import WalletProvider from './WalletProvider';
 import Account from './Account';
-
-import '@bcbconnect/lib/bcbjs';
+import UUID from 'uuid/v4';
+import extensionizer from 'extensionizer';
 import { ERRORS, ErrorHandler } from '@bcbconnect/lib/errors';
 import { deepCopy } from '@bcbconnect/lib/common';
 import { getMainAddress, getChainAddress } from '@bcbconnect/lib/address';
-import extensionizer from 'extensionizer';
-import UUID from 'uuid/v4';
+
+import '@bcbconnect/lib/bcbjs.min.js';
 
 import {
     APP_STATE,
