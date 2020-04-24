@@ -347,7 +347,7 @@ export const lang = {
 		"add":"添加",
 		"select": "选择",
 		"pick": "自选",
-		"gotoBcbscan":"BCBScan查看账户",
+		"gotoBcbscan":"BCB Scan上查看账户",
 		"copySuccess":"复制成功",
 		"selectCoin":"选择代币",
 		"balance":"余额：",

@@ -346,7 +346,7 @@ export const lang = {
 		"add":"Add",
 		"select": "Select",
 		"pick": "Pick",
-		"gotoBcbscan":"View account on BCBScan",
+		"gotoBcbscan":"View account on BCB Scan",
 		"copySuccess":"Copied successfully",
 		"selectCoin":"Select token",
 		"balance":"Balance：",
