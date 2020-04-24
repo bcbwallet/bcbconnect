@@ -12,7 +12,7 @@ const inPageScript = {
     _callbacks: {},
 
     _bindBcbWeb() {
-        if(typeof window.bcbWeb !== 'undefined') {
+        if(window.bcbWeb !== undefined) {
             logger.warn('BcbWeb is already initiated. BcbWeb will overwrite the current instance');
         }
 
@@ -79,7 +79,7 @@ const inPageScript = {
     },
 
     _bindBcbWebUtils() {
-        if(typeof window.bcbWeb === 'undefined') {
+        if(window.bcbWeb === undefined) {
             logger.warn('BcbWeb is not ready yet.');
             return;
         }
@@ -87,14 +87,14 @@ const inPageScript = {
         const utils = {};
 
         utils.ethToBcbAddress = (ethAddress, chainOpts) => {
-            if (typeof chainOpts === 'undefined' && bcbWeb.selectedChain.network) {
+            if (chainOpts === undefined && bcbWeb.selectedChain.network) {
                 chainOpts = bcbWeb.selectedChain;
             }
             return ethToBcbAddress(ethAddress, chainOpts)
         };
 
         utils.bcbToEthAddress = (address, chainOpts) => {
-            if (typeof chainOpts === 'undefined' && bcbWeb.selectedChain.network) {
+            if (chainOpts === undefined && bcbWeb.selectedChain.network) {
                 chainOpts = bcbWeb.selectedChain;
             }
             return bcbToEthAddress(address, chainOpts)

@@ -617,9 +617,8 @@ class Wallet extends EventEmitter {
     }
 
     _accountExists(address) {
-        let keys = Object.keys(this.accounts);
-        for (let i = 0; i < keys.length; i++) {
-            if (this.accounts[keys[i]].address === address) {
+        for (const key in this.accounts) {
+            if (this.accounts[key].address === address) {
                 return true;
             }
         }
@@ -983,7 +982,7 @@ class Wallet extends EventEmitter {
         if (symbol in this.assets) {
             ErrorHandler.throwError({ id: ERRORS.TOKEN_EXISTS, data: `${symbol} exists` });
         }
-        let source = (opts && typeof opts.source !== 'undefined') ? opts.source : 'user';
+        let source = (opts && opts.source !== undefined) ? opts.source : 'user';
         let tokenAddress = await NodeService.getTokenAddressBySymbol(symbol);
         this.assets[symbol] = { address: tokenAddress, enabled: true, source };
     }
@@ -1024,27 +1023,27 @@ class Wallet extends EventEmitter {
                 let enabled = assets[key] && assets[key].enabled;
                 assets[key] = { ...value };
                 assets[key].enabled = enabled;
-                if (typeof assets[key].source === 'undefined') {
+                if (assets[key].source === undefined) {
                     assets[key].source = 'network';
                 }
                 assets[key].source = 'network';
             });
             // Add default tokens
             if (this.walletProvider.isMainNet) {
-                for (let key of Object.keys(defaultEnabledAssets)) {
+                for (const key in defaultEnabledAssets) {
                     if (!(key in assets)) {
                         assets[key] = {
                             source: 'network',
                             enabled: true
                         }
                     }
-                    if (typeof assets[key].icon === 'undefined') {
+                    if (assets[key].icon === undefined) {
                         assets[key].icon = defaultEnabledAssets[key].icon;
                     }
                 }
             } 
             Object.keys(assets).forEach(key => {
-                if (assets[key].source === 'network' && typeof assets[key].balance === 'undefined') {
+                if (assets[key].source === 'network' && assets[key].balance === undefined) {
                     assets[key].balance = 0;
                     assets[key].fiatValue = 0;
                 }
@@ -1052,8 +1051,8 @@ class Wallet extends EventEmitter {
         }
 
         const enabledAssets = {};
-        for (let key of Object.keys(assets)) {
-            if (key in defaultEnabledAssets && typeof assets[key].enabled === 'undefined') {
+        for (const key in assets) {
+            if (key in defaultEnabledAssets && assets[key].enabled === undefined) {
                 assets[key].enabled = true;
             }
             if (key === this.selectedToken) {
@@ -1248,17 +1247,17 @@ class Wallet extends EventEmitter {
     }
 
     checkTransactionDefaults(transaction) {
-        if (typeof transaction.network === 'undefined') {
+        if (transaction.network === undefined) {
             transaction.network = this.network;
         }
-        if (typeof transaction.chain === 'undefined' && this.chain) {
+        if (transaction.chain === undefined && this.chain) {
             transaction.chain = this.chain;
         }
-        if (typeof transaction.version === 'undefined') {
+        if (transaction.version === undefined) {
             transaction.version = 2;
         }
         transaction.calls.forEach((call, index) => {
-            if (typeof call.type === 'undefined') {
+            if (call.type === undefined) {
                 transaction.calls[index].type = 'standard';
             }
         });
@@ -1267,7 +1266,7 @@ class Wallet extends EventEmitter {
     async signTransaction(transaction) {
         // console.log('tx:', transaction)
         this.checkTransactionDefaults(transaction);
-        if (typeof transaction.nonce === 'undefined') {
+        if (transaction.nonce === undefined) {
             let nonce = await NodeService.getTransactionCount(
                                 this.getSelectedAccountAddress());
             transaction.nonce = (nonce + 1).toString();

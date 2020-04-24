@@ -101,10 +101,10 @@ const NodeService = {
                 if (url) {
                     nodes[nodeId].url = url;
                 }
-                if (typeof node.chainId === 'undefined') {
+                if (node.chainId === undefined) {
                     nodes[nodeId].chainId = this.getChainId();
                 }
-                if (typeof node.source === 'undefined') {
+                if (node.source === undefined) {
                     nodes[nodeId].source = 'network';
                 }
             });
@@ -255,18 +255,10 @@ const NodeService = {
     async _autoSelectNode() {
         logger.info('Auto select node');
 
-        // let keys = Object.keys(this.nodes);
-        // if (keys.length > 0) {
-        //     this.selectNode(keys[0]);
-        //     // this.selectNode(keys[ keys.length * Math.random() << 0]);
-        // }
-
         let chainId = this.getChainId();
-        let nodeIds = Object.keys(this.nodes);
-        for (let i = 0; i < nodeIds.length; i++) {
-            let nodeId = nodeIds[i];
-            if (this.nodes[nodeId].chainId === chainId) {
-                return this.selectNode(nodeId);
+        for (const id in this.nodes) {
+            if (this.nodes[id].chainId === chainId) {
+                return this.selectNode(id);
             }
         }
     },
@@ -283,13 +275,11 @@ const NodeService = {
         if (!this.selectedNode) {
             return this._autoSelectNode();
         }
-        let keys = Object.keys(this.nodes);
-        for (let i = 0; i < keys.length; i++) {
-            if (this.selectedNode == nodeId) {
-                let next = (i == keys.length - 1) ? 0 : i + 1;
-                // let nextNode = this.nodes[keys[next]];
-                // let nodeInfo = await this.getNodeInfo(nextNode.url);
-                return this.selectNode(keys[next]);
+        const ids = Object.keys(this.nodes);
+        for (let i = 0; i < ids.length; i++) {
+            if (this.selectedNode == ids[i]) {
+                let next = (i == ids.length - 1) ? 0 : i + 1;
+                return this.selectNode(ids[next]);
             }
         }
     },
@@ -491,23 +481,22 @@ const NodeService = {
         logger.info('networks:', this.networks);
 
         let url;
-        for (const key in this.networks) {
-            if (key === network) {
-                url = this.networks[key].urls[0];
-                if (!this._isSideChain()) {
-                    return url;
-                } else {
-                    let urls = await this.getNodeUrls(url, this.getChainId());
-                    let nodeInfo = await this.getNodeInfo(urls[0]);
-                    if (!nodeInfo.mainUrls || !nodeInfo.mainUrls.length) {
-                        ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: 'No mainUrls' });
-                    }
-                    return nodeInfo.mainUrls[0];
+        if (network in this.networks) {
+            url = this.networks[network].urls[0];
+            if (!this._isSideChain()) {
+                return url;
+            } else {
+                let urls = await this.getNodeUrls(url, this.getChainId());
+                let nodeInfo = await this.getNodeInfo(urls[0]);
+                if (!nodeInfo.mainUrls || !nodeInfo.mainUrls.length) {
+                    ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: 'No mainUrls' });
                 }
+                return nodeInfo.mainUrls[0];
             }
+        } else {
+            url = this.getDefaultNodeUrl(this.network);
         }
 
-        url = this.getDefaultNodeUrl(this.network);
         if (url) {
             return url;
         } else {
@@ -667,7 +656,7 @@ const NodeService = {
         let result = resp.result;
         if (!result.response
             || result.response.code != 200
-            || typeof result.response.value === 'undefined') {
+            || result.response.value === undefined) {
             ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: resp });
         }
         let value = Base64.decode(result.response.value);
@@ -685,7 +674,7 @@ const NodeService = {
         let result = resp.result;
         if (!result.response
             || result.response.code != 200
-            || typeof result.response.value === 'undefined') {
+            || result.response.value === undefined) {
             ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: resp });
         }
         let value = Base64.decode(result.response.value);
@@ -709,7 +698,7 @@ const NodeService = {
             || result.response.code != 200) {
             ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: resp });
         }
-        if (typeof result.response.value === 'undefined') {
+        if (result.response.value === undefined) {
             return 0;
         }
         let value = Base64.decode(result.response.value);
@@ -733,7 +722,7 @@ const NodeService = {
             || result.response.code != 200) {
             ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: resp });
         }
-        if (typeof result.response.value === 'undefined') {
+        if (result.response.value === undefined) {
             return 0;
         }
         let value = Base64.decode(result.response.value);
@@ -760,7 +749,7 @@ const NodeService = {
         let result = resp.result;
         if (!result.response
             || result.response.code != 200
-            || typeof result.response.value === 'undefined') {
+            || result.response.value === undefined) {
             ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: resp });
         }
         let value = Base64.decode(result.response.value);
@@ -787,7 +776,7 @@ const NodeService = {
         let result = resp.result;
         if (!result.response
             || result.response.code != 200
-            || typeof result.response.value === 'undefined') {
+            || result.response.value === undefined) {
             ErrorHandler.throwError({ id: ERRORS.SERVER_ERROR, data: resp });
         }
         let value = Base64.decode(result.response.value);

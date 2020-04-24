@@ -130,7 +130,7 @@ class Account {
 
     async signTransaction(transaction) {
         let wallet = new bcbjs.Wallet(this.privateKey, this.network);
-        if (typeof transaction.network === 'undefined') {
+        if (transaction.network === undefined) {
             transaction.network = this.network;
         }
         return wallet.sign(transaction);
