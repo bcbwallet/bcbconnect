@@ -1,0 +1,136 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+}
+html {
+    font-family: "Helvetica Neue", Helvetica, Tahoma, Arial, "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+    word-spacing: 1px;
+    font-size: 14px;
+    -ms-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    color:#444;
+    width:357px;
+    height:596px;
+    
+}
+*, *:before, *:after {
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  margin: 0;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+    display: block;
+}
+body {
+    line-height: 1;
+    width: 100%;
+    height: 100%;
+}
+ol, ul {
+    list-style: none;
+}
+blockquote, q {
+    quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+    content: '';
+    content: none;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+input, textarea, select, button{
+  font-family: "Microsoft YaHei","微软雅黑","Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB",Arial,sans-serif;
+}
+input{
+  outline: none;
+  border:none;
+  background: none;
+}
+.el-select-dropdown.el-popper{
+  top: 55px!important;
+}
+.el-scrollbar__wrap {
+  overflow: initial!important;
+}
+input::-webkit-input-placeholder {
+  font-size: 14px;
+  color:#999;
+}
+  /* 滚动条整体部分，可以设置宽度 */
+   ::-webkit-scrollbar{
+    width: 4px; height: 4px;
+  } 
+  /* 滚动条两端的按钮 */
+   ::-webkit-scrollbar-button{
+    background-color:#f7f7f7;
+  } 
+  /* 外层轨道 */
+   ::-webkit-scrollbar-track{
+    background:#f7f7f7;
+  } 
+  /* 内层滚动槽 */
+/*   ::-webkit-scrollbar-track-piece {
+    background: #ff7915;
+  } */
+  /* 滚动的滑块 */
+   ::-webkit-scrollbar-thumb{
+    background:#D8D8D8;
+    -webkit-border-radius:4px;
+            border-radius:4px;
+  } 
+  /* 边角 */
+   ::-webkit-scrollbar-corner{
+    background:#82AFFF;
+  } 
+  /* 定义右下角拖动块的样式 */
+   ::-webkit-scrollbar-resizer{
+    background:#FF0BEE;
+  } 
+.mint-switch-core{
+  width: 48px;
+  height: 28px;
+}
+.mint-switch-core::before{
+  width: 46px;
+  height: 26px;
+}
+.mint-switch-core::after{
+  width: 26px;
+  height: 26px;
+}
+.mint-switch-input:checked + .mint-switch-core{
+  border-color: #4bd964;
+  background-color: #4bd964;
+}
+.mint-popup-bottom{
+  background: #FFFFFF;
+  border-radius: 14px 14px 0 0;
+  width: 100%;
+  height:284px;
+}
+.mint-toast{
+  z-index: 10000000!important
+}

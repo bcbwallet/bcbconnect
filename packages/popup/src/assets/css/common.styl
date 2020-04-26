@@ -1,0 +1,271 @@
+// @charset "UTF-8";
+@import './var.styl';
+body 
+	background: $mainBodyBgcolorGray;
+.empty 
+	width: 100%;
+	height: .1rem;
+	background: #f1f3f5;
+.horizontal-line 
+	width: 100px;
+	height: 1px;
+	background: #e1e1e1;
+.vertical-line 
+	width: 1px;
+.cur-p 
+	cursor: pointer;
+.pos-r 
+	position: relative;
+.pos-a 
+	position: absolute;
+.pos-f 
+	position: fixed;
+.pos-c 
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+.dib 
+	display: inline-block;
+.dn
+	display:none
+.db 
+	display: block;
+.tac 
+	text-align: center;
+.tal 
+	text-align: left;
+.tar 
+	text-align: right;
+.flex 
+	display: flex;
+	display: -webkit-flex;
+.flex-jc-a 
+	justify-content: space-around;
+.flex-jc-b 
+	justify-content: space-between;
+.flex-jc-c 
+	justify-content: center;
+.flex-jc-e 
+	justify-content: flex-end;
+.flex-jc-s 
+	justify-content: flex-start;
+.flex-ai-c 
+	align-items: center;
+.flex-ai-s 
+	align-items: flex-start;
+.flex-ai-e 
+	align-items: flex-end;
+.flex-w-w
+	flex-wrap:wrap;
+.fs36
+	font-size:36px;
+.fs24
+	font-size:24px;
+.fs22
+	font-size:22px;
+.fs20
+	font-size:20px;
+.fs18
+	font-size:18px;
+.fs16
+	font-size:16px;
+.fs14
+	font-size:14px;
+.fs12
+	font-size:12px;
+.colorfff
+	color:$fontColorWhite
+.color444
+	color:$fontColor444	
+.color999
+	color:$color999
+.color000
+	color:$fontColor000
+.bold
+	font-weight:bold
+.bgfff
+	background:$fontColorWhite	
+.m-auto
+	margin:0 auto
+.input-line
+	background:$colorf7f7f7
+	border:1px solid $colorEDEDED
+	border-radius 4px
+	width:300px
+	height:46px
+	padding-left:10px
+	padding-right:10px
+	input
+		width:100%
+.lang-set
+	right:10px
+	top:20px
+	z-index:100
+	img
+		margin-right:6px
+	>div
+		&:first-child
+			>div
+				background: $mainBodyBgcolorWhite;
+				box-shadow: 0 0 6px 0 #E6EDF2;
+				border-radius: 14px;
+				height: 28px;
+				padding: 8px 12px;
+				>span
+					&:first-child
+						margin-right:3px
+					&:last-child
+						border-top: 6px solid #9683a8;
+						border-left: 5px solid transparent
+						border-right: 5px solid transparent
+		&.pop-lang
+			top: 38px;
+			background: #fff;
+			box-shadow: 0 0 5px #ccc;
+			border-radius: 5px;
+			padding: 10px 8px;
+			li	
+				display:flex;
+				align-items:center;
+				margin-bottom:8px
+				padding-bottom: 8px;
+				border-bottom:1px solid #ccc
+				cursor:pointer
+				img
+					margin-right:10px
+				&:last-child
+					margin-bottom:0	
+					border-bottom:none	
+.jump-over
+	background: $mainBodyBgcolorWhite;
+	box-shadow: 0 0 6px 0 #E6EDF2;
+	border-radius: 14px;
+	width: 60px;
+	height: 28px;
+	padding-left: 12px;
+	right:10px
+	top:20px
+	>span
+		margin-right:6px
+.back
+	top: 16px;
+	left: 17px;
+	img
+		padding:0 5px
+	span
+		margin-left:6px
+		
+.threeBlueBtn
+	background: $color0195FF
+	border-radius: 11px
+	width:300px
+	height:48px
+	line-height:48px
+.rightTip
+.wrongTip
+	bottom:-23px
+	>img
+		margin-right:6px;	
+	&.rightTip
+		color:$color0195FF
+	&.wrongTip
+		color:$wrongColor
+.width314
+	width:314px!important
+.ell
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+.common-load
+	position:fixed;
+	width:100%;
+	height:100%;
+	background:rgba(255,255,255,0.7);
+	top:0;
+	z-index:1000;
+	.text
+		margin-right:10px;
+		color:$color999
+
+.common-modal
+	width: 86%;
+	border-radius: 8px;
+	overflow: hidden;
+	.common-modal-header
+		position: relative;
+		padding: 0 16px;
+		border-bottom: 1px solid lightgray;
+
+		h1
+			height: 48px;
+			font-size: 16px;
+			font-weight: normal;
+			line-height: 48px;
+
+		i
+			position: absolute;
+			top: 0;
+			right: 12px;
+			display: inline-block;
+			height: 48px;
+			font-size: 26px;
+			line-height: 48px;
+			cursor: pointer;
+
+			&:hover
+				opacity: .6;
+
+	.common-modal-body
+		padding: 16px;
+
+		ul
+			label
+				display: block;
+				margin-bottom: 4px;
+				font-size: 16px;
+				color: #333;
+				line-height: 1.5;
+
+			input
+				display: block;
+				margin-bottom: 12px;
+				padding: 0 10px;
+				width: 100%;
+				height: 46px;
+				font-size: 16px;
+				line-height: 44px;
+				background-color: #f7f7f7;
+				border: 1px solid #ededed;
+				border-radius: 4px;
+				outline: none;
+
+	.common-modal-footer
+		padding: 0 0 24px;
+		text-align: center;
+
+		.btn-cancel
+		.btn-submit
+			padding: 0 32px;
+			height: 30px;
+			font-size: 12px;
+			line-height: 28px;
+			letter-space: 2px;
+			cursor: pointer;
+			border: none;
+			outline: none;
+
+			&:hover
+				opacity: 0.8;
+
+		.btn-cancel
+			color: #8D8E8F;
+			background-color: white;
+			border: 1px solid #999;
+			border-radius: 8px;
+
+		.btn-submit
+			margin-left: 32px;
+			color: white;
+			background-color: $color0195FF;
+			border: 1px solid $color0195FF;
+			border-radius: 8px;
