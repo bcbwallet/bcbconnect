@@ -366,9 +366,8 @@ class Wallet extends EventEmitter {
         });
 
         if(!StorageService.hasAccounts) {
-            logger.info('Wallet does not have any accounts');
-            this._setState(APP_STATE.UNLOCKED);
-            return true;
+            logger.warn('Wallet does not have any accounts');
+            return false;
         }
 
         await this._loadSettings();
