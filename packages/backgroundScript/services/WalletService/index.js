@@ -400,6 +400,12 @@ class Wallet extends EventEmitter {
 
     async _updateWindow() {
         logger.info('Update popup window');
+
+        if (extensionizer.windows.update === undefined) {
+            logger.info('Not supported');
+            return false;
+        }
+
         return new Promise(resolve => {
             if(typeof chrome !== 'undefined') {
                 return extensionizer.windows.update(this.popup.id, { focused: true }, window => {
@@ -409,7 +415,7 @@ class Wallet extends EventEmitter {
 
             extensionizer.windows.update(this.popup.id, {
                 focused: true
-            }).then(resolve).catch(() => resolve(false));
+            }).then(resolve(true)).catch(() => resolve(false));
         });
     }
 
