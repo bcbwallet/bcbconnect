@@ -21,6 +21,13 @@ import {
 
 const logger = new Logger('WalletService');
 
+const popupWindowSize = {
+    width: 360,
+    height: 600,
+    left: 80,
+    top: 80
+}
+
 // Enable on mainnet
 const defaultEnabledAssets = {
     'BCB': {
@@ -397,23 +404,35 @@ class Wallet extends EventEmitter {
         // return true;
     }
 
+    _tweakWindowSize(rect) {
+        // Chrome may show a different size popup window, tweaks.
+        let { width, height, left, top } = rect;
+        if (window.navigator.userAgent.indexOf('Windows') != -1) {
+            width += 12;
+            height += 32;
+        } else if (window.navigator.userAgent.indexOf('Mac') != -1) {
+            height += 20;
+        }
+        return { width, height, left, top };
+    }
+
     async _updateWindow() {
         logger.info('Update popup window');
 
-        if (extensionizer.windows.update === undefined) {
-            logger.info('Not supported');
-            return false;
-        }
-
         return new Promise(resolve => {
             if(typeof chrome !== 'undefined') {
-                return extensionizer.windows.update(this.popup.id, { focused: true }, window => {
+                let rect = this._tweakWindowSize(popupWindowSize);
+                return extensionizer.windows.update(this.popup.id, {
+                    focused: true,
+                    ...rect
+                }, window => {
                     resolve(!!window);
                 });
             }
 
             extensionizer.windows.update(this.popup.id, {
-                focused: true
+                focused: true,
+                ...popupWindowSize
             }).then(resolve(true)).catch(() => resolve(false));
         });
     }
@@ -425,32 +444,18 @@ class Wallet extends EventEmitter {
 
         // Chrome accepts a callback to get details about the created window.
         if(typeof chrome !== 'undefined') {
-            let width = 360;
-            let height = 600;
-            // Chrome may show a different size popup window, tweaks.
-            if (window.navigator.userAgent.indexOf('Windows') != -1) {
-                width = 372;
-                height = 632;
-            } else if (window.navigator.userAgent.indexOf('Mac') != -1) {
-                height = 620;
-            }
+            let rect = this._tweakWindowSize(popupWindowSize);
             return extensionizer.windows.create({
                 url: 'packages/popup/dist/index.html',
                 type: 'popup',
-                width,
-                height,
-                left: 80,
-                top: 80
+                ...rect
             }, window => this.popup = window);
         }
 
         this.popup = await extensionizer.windows.create({
             url: 'packages/popup/dist/index.html',
             type: 'popup',
-            width: 360,
-            height: 600,
-            left: 80,
-            top: 80
+            ...popupWindowSize
         });
     }
 
