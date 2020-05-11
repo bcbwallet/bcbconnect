@@ -63,9 +63,9 @@ bvm      BVM solidity contract
 
    .. code:: 
 
-      FuncName(ParamType1,ParamType2...)ReturnType
+      func FuncName(ParamType1, ParamType2...)
 
-   Golang syntax, spaces not allowed.
+   Golang syntax.
 
    -  bvm
 
@@ -573,57 +573,58 @@ None.
 
 .. code:: javascript
 
-   let transaction = {
-       // "network": "bcb", // defaults to bcbWeb.selectedChain.network
-       // "chain": "bcb",  // defaults to bcbWeb.selectedChain.chain
-       // "version": 2,  // transaction version, defaults to 2
-       // "nonce": "100", // nonce, if not provided, query from network
-       "note": "2transfers",
-       "gasLimit": "25000",
-       "calls": [{
-           "type": "standard", // standard call type
-           "contract": "bcbLVgb3odTfKC9Y9GeFnNWL9wmR4pwWiqwe",
-           "method": "Transfer(types.Address,bn.Number)",
-           "params": ["bcbJjYFgmG52r2vnVcaSoBKKoUTxmMedjm8p", "1000000"]
-       },
-       {
-       	// defaults to standard call type
-           "contract": "bcbCsRXXMGkUJ8wRnrBUD7mQsMST4d53JRKJ",
-           "method": "Transfer(types.Address,bn.Number)",
-           "params": ["bcbJjYFgmG52r2vnVcaSoBKKoUTxmMedjm8p", "2000000"]
-       }]
-   };
-
-   window.bcbWeb.signTransaction(transaction).then(signedTransaction => {
-       console.log(signedTransaction);
-   }).catch(err => {
-       console.error(err);
+   let transaction = {
+       // "network": "bcb", // defaults to bcbWeb.selectedChain.network
+       // "chain": "bcb",  // defaults to bcbWeb.selectedChain.chain
+       // "version": 2,  // transaction version, defaults to 2
+       // "nonce": "100", // nonce, if not provided, query from network
+       "note": "2transfers",
+       "gasLimit": "25000",
+       "calls": [{
+           "type": "standard", // standard call type
+           "contract": "bcbLVgb3odTfKC9Y9GeFnNWL9wmR4pwWiqwe",
+           "method": "func Transfer(to types.Address, value bn.Number)",
+           // "Transfer(to types.Address, value bn.Number)", "Transfer(types.Address,bn.Number)" also works, all will be converted to "Transfer(types.Address,bn.Number)" internally to compute function signature.
+           "params": ["bcbJjYFgmG52r2vnVcaSoBKKoUTxmMedjm8p", "1000000"]
+       },
+       {
+       	// defaults to standard call type
+           "contract": "bcbCsRXXMGkUJ8wRnrBUD7mQsMST4d53JRKJ",
+           "method": "func Transfer(to types.Address, value bn.Number)",
+           "params": ["bcbJjYFgmG52r2vnVcaSoBKKoUTxmMedjm8p", "2000000"]
+       }]
+   };
+   
+   window.bcbWeb.signTransaction(transaction).then(signedTransaction => {
+       console.log(signedTransaction);
+   }).catch(err => {
+       console.error(err);
    })
 
 **BVM Examples**
 
 .. code:: javascript
 
-   let transaction = {
-       // "network": "bcb",
-       // "chain": "bcb",
-       // "version": 2,
-       // "nonce": "100",
-       "note": "bvmcall",
-       "gasLimit": "25000",
-       "calls": [{
-           "type": "bvm", // BVM call type
-           "contract": "bcbLVgb3odTfKC9Y9GeFnNWL9wmR4pwWiqwe",
-           "method": "function Buy(uint code) external payable",
-           // "Buy(uint code)", "Buy(uint)" also works, all will be converted to Buy(uint256) internally to compute function signature.
-           "params": ["1"]
-       }]
-   };
-
-   window.bcbWeb.signTransaction(transaction).then(signedTransaction => {
-       console.log(signedTransaction);
-   }).catch(err => {
-       console.error(err);
+   let transaction = {
+       // "network": "bcb",
+       // "chain": "bcb",
+       // "version": 2,
+       // "nonce": "100",
+       "note": "bvmcall",
+       "gasLimit": "25000",
+       "calls": [{
+           "type": "bvm", // BVM call type
+           "contract": "bcbLVgb3odTfKC9Y9GeFnNWL9wmR4pwWiqwe",
+           "method": "function Buy(uint code) external payable",
+           // "Buy(uint code)", "Buy(uint)" also works, all will be converted to "Buy(uint256)" internally to compute function signature.
+           "params": ["1"]
+       }]
+   };
+   
+   window.bcbWeb.signTransaction(transaction).then(signedTransaction => {
+       console.log(signedTransaction);
+   }).catch(err => {
+       console.error(err);
    })
 
 .. _header-n351:

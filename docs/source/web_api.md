@@ -39,9 +39,9 @@ This module provides web API of BCB Wallet Extension。
   - standard
 
   ```
-  FuncName(ParamType1,ParamType2...)ReturnType
+  func FuncName(ParamType1, ParamType2...)
   ```
-  Golang syntax, spaces not allowed.
+  Golang syntax.
 
   - bvm
 
@@ -503,13 +503,14 @@ let transaction = {
     "calls": [{
         "type": "standard", // standard call type
         "contract": "bcbLVgb3odTfKC9Y9GeFnNWL9wmR4pwWiqwe",
-        "method": "Transfer(types.Address,bn.Number)",
+        "method": "func Transfer(to types.Address, value bn.Number)",
+        // "Transfer(to types.Address, value bn.Number)", "Transfer(types.Address,bn.Number)" also works, all will be converted to "Transfer(types.Address,bn.Number)" internally to compute function signature.
         "params": ["bcbJjYFgmG52r2vnVcaSoBKKoUTxmMedjm8p", "1000000"]
     },
     {
     	// defaults to standard call type
         "contract": "bcbCsRXXMGkUJ8wRnrBUD7mQsMST4d53JRKJ",
-        "method": "Transfer(types.Address,bn.Number)",
+        "method": "func Transfer(to types.Address, value bn.Number)",
         "params": ["bcbJjYFgmG52r2vnVcaSoBKKoUTxmMedjm8p", "2000000"]
     }]
 };
@@ -535,7 +536,7 @@ let transaction = {
         "type": "bvm", // BVM call type
         "contract": "bcbLVgb3odTfKC9Y9GeFnNWL9wmR4pwWiqwe",
         "method": "function Buy(uint code) external payable",
-        // "Buy(uint code)", "Buy(uint)" also works, all will be converted to Buy(uint256) internally to compute function signature.
+        // "Buy(uint code)", "Buy(uint)" also works, all will be converted to "Buy(uint256)" internally to compute function signature.
         "params": ["1"]
     }]
 };
