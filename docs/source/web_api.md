@@ -494,21 +494,30 @@ None.
 
 ```javascript
 let transaction = {
-    // "network": "bcb", // defaults to bcbWeb.selectedChain.network
-    // "chain": "bcb",  // defaults to bcbWeb.selectedChain.chain
-    // "version": 2,  // transaction version, defaults to 2
-    // "nonce": "100", // nonce, if not provided, query from network
+    // Optional, defaults to bcbWeb.selectedChain.network
+    "network": "bcb",
+    // Optional, defaults to bcbWeb.selectedChain.chain
+    "chain": "bcb",
+    // Optional, defaults to 2
+    "version": 2,
+    // Optional, if not provided, query from network
+    "nonce": "100",
+    // Optional
     "note": "2transfers",
+
     "gasLimit": "25000",
     "calls": [{
-        "type": "standard", // standard call type
+        // Optional, defaults to standard
+        "type": "standard",
         "contract": "bcbLVgb3odTfKC9Y9GeFnNWL9wmR4pwWiqwe",
         "method": "func Transfer(to types.Address, value bn.Number)",
-        // "Transfer(to types.Address, value bn.Number)", "Transfer(types.Address,bn.Number)" also works, all will be converted to "Transfer(types.Address,bn.Number)" internally to compute function signature.
+        // "Transfer(to types.Address, value bn.Number)",
+        // "Transfer(types.Address,bn.Number)" also works,
+        // all will be converted to "Transfer(types.Address,bn.Number)" 
+        // internally to compute function signature.
         "params": ["bcbJjYFgmG52r2vnVcaSoBKKoUTxmMedjm8p", "1000000"]
     },
     {
-    	// defaults to standard call type
         "contract": "bcbCsRXXMGkUJ8wRnrBUD7mQsMST4d53JRKJ",
         "method": "func Transfer(to types.Address, value bn.Number)",
         "params": ["bcbJjYFgmG52r2vnVcaSoBKKoUTxmMedjm8p", "2000000"]
@@ -533,10 +542,12 @@ let transaction = {
     "note": "bvmcall",
     "gasLimit": "25000",
     "calls": [{
-        "type": "bvm", // BVM call type
+        "type": "bvm",
         "contract": "bcbLVgb3odTfKC9Y9GeFnNWL9wmR4pwWiqwe",
         "method": "function Buy(uint code) external payable",
-        // "Buy(uint code)", "Buy(uint)" also works, all will be converted to "Buy(uint256)" internally to compute function signature.
+        // "Buy(uint code)", "Buy(uint)" also works,
+        // all will be converted to "Buy(uint256)" 
+        // internally to compute function signature.
         "params": ["1"]
     }]
 };
