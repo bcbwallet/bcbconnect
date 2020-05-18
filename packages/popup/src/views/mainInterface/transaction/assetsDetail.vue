@@ -86,7 +86,7 @@ export default {
       try {
         let token = await this.PopupAPI.getSelectedToken();
         console.log('selected token:', token);
-        let result = await this.PopupAPI.getSelectedAccountAssets();
+        let result = await this.PopupAPI.getAccountAssets();
         console.log('account assets:', result);
         this.coinArr = [];
         Object.entries(result).forEach(([symbol, info]) => {

@@ -18,6 +18,7 @@ import {
     CONFIRMATION_TYPE,
     LANGUAGES
 } from '@bcbconnect/lib/constants';
+import Utils from '@bcbconnect/lib/utils';
 
 const logger = new Logger('WalletService');
 
@@ -26,7 +27,7 @@ const popupWindowSize = {
     height: 600,
     left: 80,
     top: 80
-}
+};
 
 // Enable on mainnet
 const defaultEnabledAssets = {
@@ -37,6 +38,8 @@ const defaultEnabledAssets = {
         icon: 'https://bcbpushsrv.bcbchain.io/public/resource/coin/icon/ecdba0e2f6615760b196edd49a2f1bf0.png'
     }
 };
+
+const FIATRATE_UPDATE_INTERVAL = 300; // secs
 
 class Wallet extends EventEmitter {
     constructor() {
@@ -59,6 +62,12 @@ class Wallet extends EventEmitter {
         this._setLanguage();
     }
 
+    _resetBalance() {
+        this.balance = false;
+        this.fiatRate = false;
+        this.fiatRateUpdatedTime = false;
+    }
+
     reset(opts) {
         this.network = false;
         this.chain = false;
@@ -70,9 +79,12 @@ class Wallet extends EventEmitter {
 
         if (!(opts && opts.keepAssets)) {
             this.assets = {};
-            this.selectedToken = false;
             this.assetsUpdated = false;
+
+            this.selectedToken = false;
             this.currency = false;
+
+            this._resetBalance();
         }
 
         this._timer = {};
@@ -730,6 +742,12 @@ class Wallet extends EventEmitter {
         // accountId can be false
         logger.info('Select account', accountId);
 
+        if (!(accountId in this.accounts)) {
+            return false;
+        }
+
+        this._resetBalance();
+
         this.selectedAccount = accountId;
 
         StorageService.saveSelectedAccount(accountId);
@@ -857,6 +875,9 @@ class Wallet extends EventEmitter {
         if (!symbol) {
             return false;
         }
+
+        this._resetBalance();
+
         this.selectedToken = symbol;
         StorageService.saveSelectedToken(symbol);
         return true;
@@ -866,14 +887,25 @@ class Wallet extends EventEmitter {
         return this.selectedToken || '';
     }
 
+    _isSelectedToken(token) {
+        return token.toLowerCase() === this.selectedToken.toLowerCase();
+    }
+
     setCurrency(currency) {
+        this._resetBalance();
+
         this.currency = currency;
         StorageService.saveCurrency(currency);
         return true;
     }
 
     getCurrency() {
-        return this.currency || '';
+        if (!this.currency) {
+            let currency = Utils.defaultCurrency(this.language);
+            this.setCurrency(currency);
+        }
+
+        return this.currency;
     }
 
     getChainAddress(address) {
@@ -885,25 +917,60 @@ class Wallet extends EventEmitter {
         return tokenAddress;
     }
 
-    async getSelectedAccountBalanceFromNode(token) {
-        logger.info('Get balance from node');
-
-        let address = this.getSelectedAccountAddress();
-        let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
-
-        let value = await NodeService.getBalance(address, tokenAddress);
-        return {
-            balance: value / 1000000000
-        };
+    async _isSelectedTokenAddress(tokenAddress) {
+        let selectedTokenAddress = await NodeService.getTokenAddressBySymbol(this.selectedToken);
+        return tokenAddress === selectedTokenAddress;
     }
 
-    async getSelectedAccountBalanceFromProvider(token) {
-        logger.info('Get balance from provider');
+    _notifyBalanceUpdate(balance) {
+        let fiatValue;
+        if (this.fiatRate) {
+            fiatValue = balance * this.fiatRate;
+        }
+        this.emit('setBalance', { balance, fiatValue });
+    }
 
-        let address = this.getSelectedAccountAddress();
+    async getBalanceFromNodeBySymbol(token) {
+        let address = this.getAccountAddress();
         let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
 
-        let { balance, fiatValue, fees } = await this.walletProvider.getBalance(address, tokenAddress);
+        let balance = await NodeService.getBalance(address, tokenAddress);
+        balance /= 1000000000;
+
+        if (this._isSelectedToken(token)) {
+            this._notifyBalanceUpdate(balance);
+        }
+
+        return { balance };
+    }
+
+    async getBalanceFromNode(tokenAddress) {
+        if (!tokenAddress) {
+            if (!this.selectedToken) {
+                ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No selected token' });
+            }
+            tokenAddress = await NodeService.getTokenAddressBySymbol(this.selectedToken);
+        }
+        let address = this.getAccountAddress();
+
+        let balance = await NodeService.getBalance(address, tokenAddress);
+        balance /= 1000000000;
+
+        if (await this._isSelectedTokenAddress(tokenAddress)) {
+            this._notifyBalanceUpdate(balance);
+        }
+
+        return { balance };
+    }
+
+    // balance, fiatRate, fees
+    async getBalanceFees(token) {
+        logger.info('Get balance from provider');
+
+        let address = this.getAccountAddress();
+        let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
+
+        let { balance, fiatValue, fees } = await this.walletProvider.getBalanceFees(address, tokenAddress, this.currency);
         return {
             balance,
             fiatValue,
@@ -912,7 +979,7 @@ class Wallet extends EventEmitter {
         };
     }
 
-    async getSelectedAccountBalance(token) {
+    async getBalance(token) {
         logger.info('Get selected account balance');
 
         if (!token) {
@@ -923,15 +990,82 @@ class Wallet extends EventEmitter {
             }
         }
 
-        let result = {};
+        let result = await this.getBalanceFromNodeBySymbol(token);
         if (this.walletProvider) {
-            result = await this.getSelectedAccountBalanceFromProvider(token);
-        } else {
-            result = await this.getSelectedAccountBalanceFromNode(token);
+            if (result.balance == 0) {
+                result.fiatValue = 0;
+            } else {
+                let fiatRate = await this.getfiatRate(token);
+                if (fiatRate) {
+                    result.fiatValue = result.balance * fiatRate;
+                }
+            }
         }
-        // add selected token
-        result.token = token;
+        if (this._isSelectedToken(token)) {
+            this.balance = result.balance;
+            // add selected token
+            result.token = token;
+        }
+
         return result;
+    }
+
+    async getfiatRate(token) {
+        logger.info('Get fiat rate');
+
+        if (!token) {
+            if (this.selectedToken) {
+                token = this.selectedToken;
+            } else {
+                ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No selected token' });
+            }
+        }
+
+        // Check fiatRate update time, fiatRate of selected token is cached
+        if (this._isSelectedToken(token)) {
+            let time = new Date().getTime();
+            if (time - this.fiatRateUpdatedTime < FIATRATE_UPDATE_INTERVAL) {
+                return this.fiatRate;
+            }
+        }
+
+        let address = this.getAccountAddress();
+        let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
+
+        let { balance, fiatValue } = await this.walletProvider.getBalanceFees(address, tokenAddress);
+        let fiatRate =  fiatValue / balance;
+
+        // Save fiatRate update time
+        if (this._isSelectedToken(token)) {
+            this.fiatRate = fiatRate;
+            this.fiatRateUpdatedTime = new Date().getTime();
+        }
+        return fiatRate;
+    }
+
+    async getFees(token) {
+        logger.info('Get fees');
+
+        if (!token) {
+            if (this.selectedToken) {
+                token = this.selectedToken;
+            } else {
+                ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No selected token' });
+            }
+        }
+
+        let address = this.getAccountAddress();
+        let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
+
+        if (this.walletProvider) {
+            let { fees } = await this.walletProvider.getBalanceFees(address, tokenAddress);
+            return {
+                fees,
+                feeToken: this.walletProvider.getMainToken()
+            };
+        } else {
+            return {};
+        }
     }
 
     async getNetworkAssets() {
@@ -1018,13 +1152,13 @@ class Wallet extends EventEmitter {
     }
 
     // Get account enabled assets
-    async getSelectedAccountAssets() {
+    async getAccountAssets() {
         logger.info('Get selected account assets', this.assets);
 
         const assets = deepCopy(this.assets);
         if (this.walletProvider) {
-            let address = this.getSelectedAccountAddress();
-            let accountAssets = await this.walletProvider.getAccountAssets(address);
+            let address = this.getAccountAddress();
+            let accountAssets = await this.walletProvider.getAccountAssets(address, this.currency);
 
             // console.log('updated assets', accountAssets)
             // console.log('current assets', assets)
@@ -1070,7 +1204,7 @@ class Wallet extends EventEmitter {
             }
             if (assets[key].enabled) {
                 if (assets[key].source === 'user') {
-                    let result = await this.getSelectedAccountBalanceFromNode(key);
+                    let result = await this.getBalanceFromNodeBySymbol(key);
                     assets[key].balance = result.balance;
                 }
                 enabledAssets[key] = assets[key];
@@ -1086,7 +1220,7 @@ class Wallet extends EventEmitter {
         return enabledAssets;
     }
 
-    async getSelectedAccountTransactions(opts) {
+    async getAccountTransactions(opts) {
         let { page, pageSize } = opts;
 
         if (!this.walletProvider) {
@@ -1097,7 +1231,7 @@ class Wallet extends EventEmitter {
         }
         let tokenAddress = await NodeService.getTokenAddressBySymbol(this.selectedToken);
 
-        let address = this.getSelectedAccountAddress();
+        let address = this.getAccountAddress();
         let result = await this.walletProvider.getAccountTransactions(address, tokenAddress, page, pageSize);
         // logger.info('transactions:', result);
         return result;
@@ -1193,6 +1327,9 @@ class Wallet extends EventEmitter {
     }
 
     getAccountDetails(accountId) {
+        if (!accountId) {
+            accountId = this.selectedAccount;
+        }
         logger.info('Get account details of', accountId);
 
         if(!accountId) {
@@ -1216,12 +1353,8 @@ class Wallet extends EventEmitter {
         return this.selectedAccount || '';
     }
 
-    getSelectedAccountAddress() {
+    getAccountAddress() {
         return this.getChainAddress(this.accounts[this.selectedAccount].address);
-    }
-
-    getSelectedAccountDetails() {
-        return this.getAccountDetails(this.selectedAccount);
     }
 
     deleteAccount(accountId) {
@@ -1278,7 +1411,7 @@ class Wallet extends EventEmitter {
         this.checkTransactionDefaults(transaction);
         if (transaction.nonce === undefined) {
             let nonce = await NodeService.getTransactionCount(
-                                this.getSelectedAccountAddress());
+                                this.getAccountAddress());
             transaction.nonce = (nonce + 1).toString();
         }
 

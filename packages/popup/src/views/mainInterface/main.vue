@@ -69,8 +69,7 @@
                     @click="gotoDetail"
                 >
                     <span :class="{ sx_ft: sxShow }"
-                        >{{
-                            Number(parseFloat(selAsset.balance).toFixed(6))
+                        >{{ balance.balance == null ? '*' : parseFloat(balance.balance).toFixed(6)
                         }} </span
                     ><!-- <span class="fs16">{{selCoin}}</span> -->
                     <img
@@ -79,8 +78,8 @@
                     />
                 </div>
                 <div class="fs14 color999 tac">
-                    ≈{{ selCurrency == 'CNY' ? '¥' : '$'
-                    }}{{ selAsset.fiatValue ? Number(parseFloat(selAsset.fiatValue).toFixed(6)) : '-' }}
+                    {{ balance.fiatValue == null ? '*' : ((selCurrency === 'CNY' ? '¥' : '$')
+                     + parseFloat(balance.fiatValue).toFixed(6)) }}
                 </div>
                 <div class="main-btn flex flex-jc-b">
                     <div class="tac cur-p" @click="gotoTransfer">
@@ -465,7 +464,6 @@ export default {
             selCurrency: 'USD',
             popupVisible: false,
             selCoin: '',
-            selAsset: { balance: '0', fiatValue: '0' },
             page: 1,
             pageSize: 10,
             loading: true,
@@ -485,6 +483,9 @@ export default {
     computed: {
         account() {
             return this.$store.state.account;
+        },
+        balance() {
+            return this.$store.state.balance;
         },
         homeText() {
             return this.$t('lang.main.home');
@@ -530,9 +531,9 @@ export default {
             this.staticData();
             await this.getSettings();
             if (this.tabIndex == 0) {
-                await this.getSelectedAccountDetails();
+                await this.getAccountDetails();
                 await this.getSelectedToken();
-                await this.getSelectedAccountBalance();
+                await this.getBalance();
                 await this.getAccountTransactions();
             } else if (this.tabIndex == 1) {
                 await this.getAccounts();
@@ -551,18 +552,13 @@ export default {
         async getSettings() {
             try {
                 let currency = await this.PopupAPI.getCurrency();
-                console.log('currency', currency)
-                if (!currency) {
-                    currency = 'USD';
-                    this.PopupAPI.setCurrency(currency);
-                }
                 this.selCurrency = currency;
                 this.currencyIdx = this.selCurrency == 'USD' ? '0' : '1';
 
                 let settings = await this.PopupAPI.getSettings();
                 console.log('setttings', settings)
                 let mnemSaved = false;
-                if (settings && typeof settings.mnemSaved !== 'undefined') {
+                if (settings && settings.mnemSaved !== undefined) {
                     mnemSaved = settings.mnemSaved;
                 }
                 this.mnemNotice = (!mnemSaved && this.tabIndex == 0);
@@ -618,7 +614,7 @@ export default {
             this.selNode = result.nodes[result.selected].url;
             console.log('selected', this.selNode);
         },
-        async getSelectedAccountDetails() {
+        async getAccountDetails() {
             let _this = this;
             if (this.account.hasOwnProperty('address')) {
                 console.log('savedAccount:', this.account);
@@ -626,7 +622,7 @@ export default {
                 this.walletName = this.account.name;
                 // _this.checkAccount()
             } else {
-                let result = await this.PopupAPI.getSelectedAccountDetails();
+                let result = await this.PopupAPI.getAccountDetails();
                 console.log('selectedAccount:', result);
                 this.walletAddr = result.address;
                 this.walletName = result.name;
@@ -638,21 +634,20 @@ export default {
         async getSelectedToken() {
             let token = await this.PopupAPI.getSelectedToken();
             this.selCoin = token;
-            this.$store.state.token = token;
+            this.$store.commit("SET_TOKEN", token);
         },
-        async getSelectedAccountBalance() {
+        async getBalance() {
             try {
-                let result = await this.PopupAPI.getSelectedAccountBalance();
+                let result = await this.PopupAPI.getBalance();
                 console.log('balance:', result);
-                // let { token, balance, fiatValue, fee, feeToken } = result;
-                this.selAsset = result;
+                this.balance = result;
+                this.$store.commit("SET_BALANCE", result);
             } catch (err) {
-                this.selAsset = { balance: 0 };
-                return;
+                console.log('get balance error', err);
             }
 
             this.sxShow =
-                String(this.selAsset.balance).length > 9 ? true : false;
+                String(this.balance.balance).length > 9 ? true : false;
         },
         logoutCancel() {
             this.isLogoutBoxShow = false;
@@ -662,8 +657,8 @@ export default {
             _this.PopupAPI.lockWallet().then(res => {
                 _this.isLogoutBoxShow = false;
                 sessionStorage.removeItem('tabIndex');
-                _this.selAsset.balance = '-';
-                _this.selAsset.fiatValue = '-';
+                _this.balance.balance = '';
+                _this.balance.fiatValue = '';
                 // _this.$router.push('/open/fromMain')
             }).catch(err => {
                 Toast({
@@ -707,7 +702,7 @@ export default {
                 }
 
                 this.loading = true;
-                let result = await this.PopupAPI.getSelectedAccountTransactions({
+                let result = await this.PopupAPI.getAccountTransactions({
                     page: this.page,
                     pageSize: this.pageSize
                 });
@@ -727,7 +722,7 @@ export default {
                 this.page++;
                 // await this.getAccountTransactions();
             } catch (err) {
-                console.log('getSelectedAccountTransactions error:', err);
+                console.log('getAccountTransactions error:', err);
                 this.loading = false;
                 this.noMore = true;
             }
@@ -738,7 +733,7 @@ export default {
                 Toast({
                     message: this.$t('lang.main.noAccount')
                 });
-                this.selAsset = { token: '', balance: '0', fiatValue: '0' };
+                this.balance = { token: '', balance: 0, fiatValue: 0 };
                 return;
             }
         },

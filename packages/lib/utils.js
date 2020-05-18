@@ -112,6 +112,14 @@ const Utils = {
         });
     },
 
+    defaultCurrency(lang) {
+        switch (lang) {
+            case 'zh-CN':
+                return 'CNY';
+            default:
+                return 'USD';
+        }
+    }
 
 };
 

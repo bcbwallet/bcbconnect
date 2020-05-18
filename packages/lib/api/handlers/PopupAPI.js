@@ -105,8 +105,8 @@ export default {
         return this.duplex.send('getAccountDetails', accountId);
     },
 
-    getSelectedAccountDetails() {
-        return this.duplex.send('getSelectedAccountDetails');
+    getAccountDetails() {
+        return this.duplex.send('getAccountDetails');
     },
 
     getRecentRecipients() {
@@ -201,8 +201,8 @@ export default {
 
     // Assets
 
-    async getSelectedAccountBalance(token) {
-        return this.duplex.send('getSelectedAccountBalance', token);
+    async getBalance(token) {
+        return this.duplex.send('getBalance', token);
     },
 
     getNetworkAssets() {
@@ -217,12 +217,12 @@ export default {
         return this.duplex.send('addAsset', symbol);
     },
 
-    async getSelectedAccountAssets() {
-        return this.duplex.send('getSelectedAccountAssets');
+    async getAccountAssets() {
+        return this.duplex.send('getAccountAssets');
     },
 
-    getSelectedAccountTransactions(opts) {
-        return this.duplex.send('getSelectedAccountTransactions', opts);
+    getAccountTransactions(opts) {
+        return this.duplex.send('getAccountTransactions', opts);
     },
 
     selectToken(symbol) {

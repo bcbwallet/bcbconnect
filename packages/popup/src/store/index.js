@@ -10,7 +10,9 @@ export default new Vuex.Store({
     appState: -1, //流程状态
     walletAddr: "", //主界面显示使用address
     hostname: "",
-    fromCreatePage: false
+    fromCreatePage: false,
+    token: "",
+    balance: {}
   },
   mutations: {
     SET_HOSTNAME: (state, name) => {
@@ -18,6 +20,12 @@ export default new Vuex.Store({
     },
     SET_FROMCREATESTATE: (state, isTrue) => {
       state.fromCreatePage = isTrue;
+    },
+    SET_TOKEN: (state, token) => {
+      state.token = token;
+    },
+    SET_BALANCE: (state, balance) => {
+      state.balance = balance;
     }
   },
   actions: {}

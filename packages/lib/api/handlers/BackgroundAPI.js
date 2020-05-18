@@ -67,6 +67,10 @@ export default {
 
     setSetting(setting) {
         this.duplex.send('popup', 'setSetting', setting, false);
+    },
+
+    setBalance(balance) {
+        this.duplex.send('popup', 'setBalance', balance, false);
     }
 
 };

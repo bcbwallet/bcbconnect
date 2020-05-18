@@ -87,6 +87,11 @@ Promise.all([
 
   duplex.on("setSetting", setting => {});
 
+  duplex.on("setBalance", balance => {
+    console.log('balance update: ', balance);
+    store.state.balance = balance;
+  });
+
 });
 
 function onNewState(appState) {

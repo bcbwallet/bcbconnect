@@ -244,7 +244,7 @@ export default {
   methods: {
     blurAddrCheckEv() {
       console.log('blurAddrCheck', this.form.addr)
-      this.getBalanceAndFee();
+      this.getFees();
     },
     transferAllEv() {
       console.log(`coin: ${this.selCoin}, fee: ${this.fee} ${this.feeCoin}`);
@@ -278,14 +278,22 @@ export default {
       this.fee = "";
       this.feeCoin = "";
     },
-    async getBalanceAndFee() {
+    async getBalance() {
       try {
-        let result = await this.PopupAPI.getSelectedAccountBalance(this.selCoin);
-        console.log('balance for fee:', result);
-        let { token, balance, fiatValue, fees, feeToken } = result;
-        // this.selAsset = { token, balance, fiatValue, feeToken };
+        let result = await this.PopupAPI.getBalance(this.selCoin);
+        console.log('balance:', result);
+        let { token, balance, fiatValue } = result;
         this.selAsset.balance = balance;
         this.selAsset.fiatValue = fiatValue;
+      } catch(err) {
+        console.log('get balance error', err)
+      }
+    },
+    async getFees() {
+      try {
+        let result = await this.PopupAPI.getFees(this.selCoin);
+        console.log('fees:', result);
+        let { fees, feeToken } = result;
         this.feeCoin = feeToken;
         if (!Array.isArray(fees) || fees.length == 0) {
           return;
@@ -305,7 +313,7 @@ export default {
           }
         }
       } catch(err) {
-        console.log('get balance for fee error', err)
+        console.log('get fees error', err)
       }
     },
     focusSingle(item) {
@@ -426,7 +434,7 @@ export default {
           position: "top",
           iconClass: "mintui mintui-success"
         });
-        await this.getBalanceAndFee();
+        await this.getBalance();
       } catch (err) {
         console.log('transfer error:', err)
         this.isProcessing = false;
@@ -448,7 +456,7 @@ export default {
     },
     async getAccountAssets() {
       try {
-        let result = await this.PopupAPI.getSelectedAccountAssets();
+        let result = await this.PopupAPI.getAccountAssets();
         console.log('account assets2:', result);
         this.coinArr = [];
         Object.entries(result).forEach(([symbol, info]) => {

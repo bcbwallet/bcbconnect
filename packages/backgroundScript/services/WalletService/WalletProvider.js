@@ -100,13 +100,9 @@ class WalletProvider {
         return assets;
     }
 
-    async getAccountAssets(address) {
+    async getAccountAssets(address, currency) {
         logger.info('WalletProvider: Get account assets');
 
-        let currency = StorageService.getCurrency();
-        if (!currency) {
-            currency = 'USD';
-        }
         let url = this.isSideChain ? `${this.provider.url}/${this.chain}` : this.provider.url;
         let coinType = this.provider.coinType;
         let result = await this._request(
@@ -127,13 +123,13 @@ class WalletProvider {
         return assets;
     }
 
-    async getBalance(address, tokenAddress) {
-        logger.info('WalletProvider: Get balance', address, tokenAddress);
+    async getBalanceFees(address, tokenAddress, currency) {
+        logger.info('WalletProvider: Get balance fees', address, tokenAddress);
 
         let url = this.isSideChain ? `${this.provider.url}/${this.chain}` : this.provider.url;
         let coinType = this.provider.coinType;
         let result = await this._request(
-            `${url}/api/v1/addrs/token_balance/single/${coinType}/${tokenAddress}/${address}?appId=${walletAppId}`
+            `${url}/api/v1/addrs/token_balance/single/${coinType}/${tokenAddress}/${address}?legal=${currency}&appId=${walletAppId}`
         );
         // console.log(result)
         this._checkResultThrowsError(result);

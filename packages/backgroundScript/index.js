@@ -66,7 +66,6 @@ const backgroundScript = {
         duplex.on('setAccountName', this.walletService.setAccountName);
         duplex.on('selectAccount', this.walletService.selectAccount);
         duplex.on('getSelectedAccount', this.walletService.getSelectedAccount);
-        duplex.on('getSelectedAccountDetails', this.walletService.getSelectedAccountDetails);
         duplex.on('getAccountDetails', this.walletService.getAccountDetails);
         duplex.on('getAccounts', this.walletService.getAccounts);
         duplex.on('importAccount', this.walletService.importAccount);
@@ -95,12 +94,13 @@ const backgroundScript = {
         duplex.on('getSelectedChain', this.walletService.getSelectedChain);
 
         // WalletService: Assets
-        duplex.on('getSelectedAccountBalance', this.walletService.getSelectedAccountBalance);
+        duplex.on('getBalance', this.walletService.getBalance);
+        duplex.on('getFees', this.walletService.getFees);
         duplex.on('getNetworkAssets', this.walletService.getNetworkAssets);
         duplex.on('enableAssets', this.walletService.enableAssets);
         duplex.on('addAsset', this.walletService.addAsset);
-        duplex.on('getSelectedAccountAssets', this.walletService.getSelectedAccountAssets);
-        duplex.on('getSelectedAccountTransactions', this.walletService.getSelectedAccountTransactions);
+        duplex.on('getAccountAssets', this.walletService.getAccountAssets);
+        duplex.on('getAccountTransactions', this.walletService.getAccountTransactions);
         duplex.on('selectToken', this.walletService.selectToken);
         duplex.on('getSelectedToken', this.walletService.getSelectedToken);
         duplex.on('setCurrency', this.walletService.setCurrency);
@@ -145,7 +145,7 @@ const backgroundScript = {
                 const version = extensionizer.runtime.getManifest().version;
                 const language = await this.walletService.getLanguage();
                 const ready = this.walletService.isReady();
-                const account = this.walletService.getSelectedAccountDetails();
+                const account = this.walletService.getAccountDetails();
                 const chain = this.walletService.getSelectedChain();
                 response.version = version;
                 response.language = language;
@@ -167,9 +167,7 @@ const backgroundScript = {
                 try {
                     this.walletService.checkReadyThrowsError();
 
-                    const address = this.walletService.getSelectedAccountAddress();
-
-                    let balance = await NodeService.getBalance(address, tokenAddress);
+                    let { balance } = await this.walletService.getBalanceFromNode(tokenAddress);
                     // logger.info(balance)
                     success = true;
                     data = balance;
@@ -187,10 +185,7 @@ const backgroundScript = {
                 try {
                     this.walletService.checkReadyThrowsError();
 
-                    const address = this.walletService.getSelectedAccountAddress();
-
-                    let tokenAddress = await NodeService.getTokenAddressBySymbol(symbol);
-                    let balance = await NodeService.getBalance(address, tokenAddress);
+                    let { balance } = await this.walletService.getBalanceFromNodeBySymbol(symbol);
                     // logger.info(balance)
                     success = true;
                     data = balance;
@@ -226,7 +221,7 @@ const backgroundScript = {
                         });
                     }
 
-                    const account = this.walletService.getSelectedAccountDetails();
+                    const account = this.walletService.getAccountDetails();
 
                     this.walletService.queueConfirmation({
                         type: CONFIRMATION_TYPE.STRING,
@@ -263,7 +258,7 @@ const backgroundScript = {
                         });
                     }
 
-                    const account = this.walletService.getSelectedAccountDetails();
+                    const account = this.walletService.getAccountDetails();
 
                     transaction.cost = await NodeService.getTransactionCost(transaction.calls);
 
@@ -312,7 +307,7 @@ const backgroundScript = {
                         return send(signedTx, resolve);
                     }
 
-                    const account = this.walletService.getSelectedAccountDetails();
+                    const account = this.walletService.getAccountDetails();
 
                     transaction.cost = await NodeService.getTransactionCost(transaction.calls);
 
@@ -390,7 +385,7 @@ const backgroundScript = {
                         return send(signedTx, resolve);
                     }
 
-                    const account = this.walletService.getSelectedAccountDetails();
+                    const account = this.walletService.getAccountDetails();
 
                     transaction.cost = await NodeService.getTransactionCost(transaction.calls);
 
@@ -458,6 +453,10 @@ const backgroundScript = {
             logger.info('setLanguage:', language);
             this.errorHandler.setLanguage(language);
             BackgroundAPI.setLanguage(language)
+        });
+
+        this.walletService.on('setBalance', balance => {
+            BackgroundAPI.setBalance(balance);
         });
     }
 };
