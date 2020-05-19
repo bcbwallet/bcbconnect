@@ -164,6 +164,10 @@ const backgroundScript = {
             } case 'getBalance': {
                 let tokenAddress = data; // can be {}
 
+                if (tokenAddress === undefined || Object.keys(tokenAddress).length === 0) {
+                    tokenAddress = await this.walletService.getSelectedTokenAddress();
+                }
+
                 let success;
                 try {
                     this.walletService.checkReadyThrowsError();
@@ -171,7 +175,7 @@ const backgroundScript = {
                     const { balance } = await this.walletService.getBalanceFromNode(tokenAddress);
                     // logger.info(balance)
                     success = true;
-                    data = balance;
+                    data = balance * 1000000000;
 
                     if (await this.walletService.isSelectedTokenAddress(tokenAddress)) {
                         this.walletService.notifyBalanceUpdate(balance);
@@ -193,7 +197,7 @@ const backgroundScript = {
                     const { balance } = await this.walletService.getBalanceFromNodeBySymbol(symbol);
                     // logger.info(balance)
                     success = true;
-                    data = balance;
+                    data = balance * 1000000000;
 
                     if (this.walletService.isSelectedToken(symbol)) {
                         this.walletService.notifyBalanceUpdate(balance);
