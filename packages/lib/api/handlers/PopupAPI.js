@@ -205,6 +205,10 @@ export default {
         return this.duplex.send('getBalance', token);
     },
 
+    async getFees(token) {
+        return this.duplex.send('getFees', token);
+    },
+
     getNetworkAssets() {
         return this.duplex.send('getNetworkAssets');
     },

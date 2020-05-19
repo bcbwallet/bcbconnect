@@ -1032,7 +1032,7 @@ class Wallet extends EventEmitter {
         let address = this.getAccountAddress();
         let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
 
-        let { balance, fiatValue } = await this.walletProvider.getBalanceFees(address, tokenAddress);
+        let { balance, fiatValue } = await this.walletProvider.getBalanceFees(address, tokenAddress, this.currency);
         let fiatRate =  fiatValue / balance;
 
         // Save fiatRate update time
@@ -1058,7 +1058,7 @@ class Wallet extends EventEmitter {
         let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
 
         if (this.walletProvider) {
-            let { fees } = await this.walletProvider.getBalanceFees(address, tokenAddress);
+            let { fees } = await this.walletProvider.getBalanceFees(address, tokenAddress, this.currency);
             return {
                 fees,
                 feeToken: this.walletProvider.getMainToken()

@@ -290,6 +290,8 @@ export default {
       }
     },
     async getFees() {
+      this.fee = '';
+      this.feeToken = '';
       try {
         let result = await this.PopupAPI.getFees(this.selCoin);
         console.log('fees:', result);
