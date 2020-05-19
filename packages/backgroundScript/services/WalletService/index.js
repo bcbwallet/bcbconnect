@@ -62,6 +62,11 @@ class Wallet extends EventEmitter {
         this._setLanguage();
     }
 
+    _resetAssets() {
+        this.assets = {};
+        this.assetsUpdated = false;
+    }
+
     _resetBalance() {
         this.balance = false;
         this.fiatRate = false;
@@ -78,11 +83,10 @@ class Wallet extends EventEmitter {
         }
 
         if (!(opts && opts.keepAssets)) {
-            this.assets = {};
-            this.assetsUpdated = false;
-
             this.selectedToken = false;
             this.currency = false;
+
+            this._resetAssets();
 
             this._resetBalance();
         }
@@ -746,6 +750,7 @@ class Wallet extends EventEmitter {
             return false;
         }
 
+        this._resetAssets();
         this._resetBalance();
 
         this.selectedAccount = accountId;
