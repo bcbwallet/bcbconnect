@@ -69,7 +69,7 @@
                     @click="gotoDetail"
                 >
                     <span :class="{ sx_ft: sxShow }"
-                        >{{ balance.balance == null ? '*' : parseFloat(balance.balance).toFixed(6)
+                        >{{ balance.balance == null ? '*' : Number(parseFloat(balance.balance).toFixed(6))
                         }} </span
                     ><!-- <span class="fs16">{{selCoin}}</span> -->
                     <img
@@ -79,7 +79,7 @@
                 </div>
                 <div class="fs14 color999 tac">
                     {{ balance.fiatValue == null ? '*' : ((selCurrency === 'CNY' ? '¥' : '$')
-                     + parseFloat(balance.fiatValue).toFixed(6)) }}
+                     + Number(parseFloat(balance.fiatValue).toFixed(6))) }}
                 </div>
                 <div class="main-btn flex flex-jc-b">
                     <div class="tac cur-p" @click="gotoTransfer">
