@@ -19,7 +19,7 @@
         <div class="tar coin-right">
           <div class="bold">{{ item.balance }}</div>
           <div class="color999 fs12">
-            ≈ {{ selCurrency == "CNY" ? "¥" : "$" }} {{ item.fiatValue }}
+            {{ (selCurrency == "CNY" ? "¥" : "$") + item.fiatValue }}
           </div>
         </div>
         <img
