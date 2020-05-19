@@ -30,6 +30,8 @@ const publicNetworks = {
     }
 };
 
+const disabledChains = [ 'yy', 'jiujiu', 'jiuj' ];
+
 const NodeService = {
     // keep on reset
     networks: {},
@@ -194,6 +196,7 @@ const NodeService = {
             chains.push(chain);
         });
         logger.info(`chains: ${chains}`);
+        chains = chains.filter(chain => !(disabledChains.includes(chain)));
         if (chains.length > 0) {
             this.networks[network].chains = chains;
             this.saveNetworks();
