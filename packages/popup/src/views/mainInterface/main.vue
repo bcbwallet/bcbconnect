@@ -657,9 +657,6 @@ export default {
             _this.PopupAPI.lockWallet().then(res => {
                 _this.isLogoutBoxShow = false;
                 sessionStorage.removeItem('tabIndex');
-                _this.balance.balance = '';
-                _this.balance.fiatValue = '';
-                // _this.$router.push('/open/fromMain')
             }).catch(err => {
                 Toast({
                     message: err.message
