@@ -934,7 +934,7 @@ class Wallet extends EventEmitter {
     }
 
     notifyBalanceUpdate(balance) {
-        logger.info('notify balance update', balance);
+        logger.info('notify balance update');
 
         let fiatValue;
         if (this.fiatRate) {
