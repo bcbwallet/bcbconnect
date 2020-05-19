@@ -105,8 +105,8 @@ export default {
         return this.duplex.send('getAccountDetails', accountId);
     },
 
-    getAccountDetails() {
-        return this.duplex.send('getAccountDetails');
+    getSelectedAccountDetails() {
+        return this.duplex.send('getSelectedAccountDetails');
     },
 
     getRecentRecipients() {

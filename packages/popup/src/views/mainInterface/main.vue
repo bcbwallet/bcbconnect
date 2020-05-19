@@ -622,7 +622,7 @@ export default {
                 this.walletName = this.account.name;
                 // _this.checkAccount()
             } else {
-                let result = await this.PopupAPI.getAccountDetails();
+                let result = await this.PopupAPI.getSelectedAccountDetails();
                 console.log('selectedAccount:', result);
                 this.walletAddr = result.address;
                 this.walletName = result.name;

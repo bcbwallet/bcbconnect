@@ -705,7 +705,7 @@ const NodeService = {
 
     async getBalance(address, tokenAddress) {
         if (!address || !tokenAddress) {
-            ErrorHandler.throwError(errros.INVALID_PARAMS);
+            ErrorHandler.throwError(ERRORS.INVALID_PARAMS);
         }
 
         let resp = await this.nodeRequest(
@@ -729,7 +729,7 @@ const NodeService = {
 
     async getTokenAddressBySymbol(symbol) {
         if (!symbol) {
-            ErrorHandler.throwError(errros.INVALID_PARAMS);
+            ErrorHandler.throwError(ERRORS.INVALID_PARAMS);
         }
 
         symbol = symbol.toLowerCase();

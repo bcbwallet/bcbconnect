@@ -898,7 +898,7 @@ class Wallet extends EventEmitter {
         return this.selectedToken || '';
     }
 
-    _isSelectedToken(token) {
+    isSelectedToken(token) {
         return token.toLowerCase() === this.selectedToken.toLowerCase();
     }
 
@@ -928,12 +928,14 @@ class Wallet extends EventEmitter {
         return tokenAddress;
     }
 
-    async _isSelectedTokenAddress(tokenAddress) {
+    async isSelectedTokenAddress(tokenAddress) {
         let selectedTokenAddress = await NodeService.getTokenAddressBySymbol(this.selectedToken);
         return tokenAddress === selectedTokenAddress;
     }
 
-    _notifyBalanceUpdate(balance) {
+    notifyBalanceUpdate(balance) {
+        logger.info('notify balance update', balance);
+
         let fiatValue;
         if (this.fiatRate) {
             fiatValue = balance * this.fiatRate;
@@ -942,35 +944,16 @@ class Wallet extends EventEmitter {
     }
 
     async getBalanceFromNodeBySymbol(token) {
-        let address = this.getAccountAddress();
         let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
 
-        let balance = await NodeService.getBalance(address, tokenAddress);
-        balance /= 1000000000;
-
-        if (this._isSelectedToken(token)) {
-            this._notifyBalanceUpdate(balance);
-        }
-
-        return { balance };
+        return await this.getBalanceFromNode(tokenAddress);
     }
 
     async getBalanceFromNode(tokenAddress) {
-        if (!tokenAddress) {
-            if (!this.selectedToken) {
-                ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No selected token' });
-            }
-            tokenAddress = await NodeService.getTokenAddressBySymbol(this.selectedToken);
-        }
-        let address = this.getAccountAddress();
+        let address = this.getSelectedAccountAddress();
 
         let balance = await NodeService.getBalance(address, tokenAddress);
         balance /= 1000000000;
-
-        if (await this._isSelectedTokenAddress(tokenAddress)) {
-            this._notifyBalanceUpdate(balance);
-        }
-
         return { balance };
     }
 
@@ -978,7 +961,7 @@ class Wallet extends EventEmitter {
     async getBalanceFees(token) {
         logger.info('Get balance from provider');
 
-        let address = this.getAccountAddress();
+        let address = this.getSelectedAccountAddress();
         let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
 
         let { balance, fiatValue, fees } = await this.walletProvider.getBalanceFees(address, tokenAddress, this.currency);
@@ -1012,7 +995,7 @@ class Wallet extends EventEmitter {
                 }
             }
         }
-        if (this._isSelectedToken(token)) {
+        if (this.isSelectedToken(token)) {
             this.balance = result.balance;
             // add selected token
             result.token = token;
@@ -1033,21 +1016,21 @@ class Wallet extends EventEmitter {
         }
 
         // Check fiatRate update time, fiatRate of selected token is cached
-        if (this._isSelectedToken(token)) {
+        if (this.isSelectedToken(token)) {
             let time = new Date().getTime();
             if (time - this.fiatRateUpdatedTime < FIATRATE_UPDATE_INTERVAL) {
                 return this.fiatRate;
             }
         }
 
-        let address = this.getAccountAddress();
+        let address = this.getSelectedAccountAddress();
         let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
 
         let { balance, fiatValue } = await this.walletProvider.getBalanceFees(address, tokenAddress, this.currency);
         let fiatRate =  fiatValue / balance;
 
         // Save fiatRate update time
-        if (this._isSelectedToken(token)) {
+        if (this.isSelectedToken(token)) {
             this.fiatRate = fiatRate;
             this.fiatRateUpdatedTime = new Date().getTime();
         }
@@ -1065,7 +1048,7 @@ class Wallet extends EventEmitter {
             }
         }
 
-        let address = this.getAccountAddress();
+        let address = this.getSelectedAccountAddress();
         let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
 
         if (this.walletProvider) {
@@ -1168,7 +1151,7 @@ class Wallet extends EventEmitter {
 
         const assets = deepCopy(this.assets);
         if (this.walletProvider) {
-            let address = this.getAccountAddress();
+            let address = this.getSelectedAccountAddress();
             let accountAssets = await this.walletProvider.getAccountAssets(address, this.currency);
 
             // console.log('updated assets', accountAssets)
@@ -1242,7 +1225,7 @@ class Wallet extends EventEmitter {
         }
         let tokenAddress = await NodeService.getTokenAddressBySymbol(this.selectedToken);
 
-        let address = this.getAccountAddress();
+        let address = this.getSelectedAccountAddress();
         let result = await this.walletProvider.getAccountTransactions(address, tokenAddress, page, pageSize);
         // logger.info('transactions:', result);
         return result;
@@ -1338,9 +1321,6 @@ class Wallet extends EventEmitter {
     }
 
     getAccountDetails(accountId) {
-        if (!accountId) {
-            accountId = this.selectedAccount;
-        }
         logger.info('Get account details of', accountId);
 
         if(!accountId) {
@@ -1364,7 +1344,11 @@ class Wallet extends EventEmitter {
         return this.selectedAccount || '';
     }
 
-    getAccountAddress() {
+    getSelectedAccountDetails() {
+        return this.getAccountDetails(this.selectedAccount);
+    }
+
+    getSelectedAccountAddress() {
         return this.getChainAddress(this.accounts[this.selectedAccount].address);
     }
 
@@ -1422,7 +1406,7 @@ class Wallet extends EventEmitter {
         this.checkTransactionDefaults(transaction);
         if (transaction.nonce === undefined) {
             let nonce = await NodeService.getTransactionCount(
-                                this.getAccountAddress());
+                                this.getSelectedAccountAddress());
             transaction.nonce = (nonce + 1).toString();
         }
 
