@@ -38,7 +38,7 @@
                         id="chainId"
                         type="text"
                         v-model="chainId"
-                        :placeholder="$t('lang.network.enterChainId')"
+                        :placeholder="$t('lang.main.optional')"
                     />
                 </li>
             </ul>

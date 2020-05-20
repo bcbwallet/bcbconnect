@@ -276,7 +276,6 @@ export const lang = {
 		"createSuccess":"Created Successfully"
 	},
 	"importWallet":{//导入钱包界面
-		"enterKsPwd":"Enter keystore password",
 		"mnemonic":"Mnemonic",
 		"enterNewPwd":"Enter new password",
 		"confirmPwd":"Confirm new password",
@@ -444,7 +443,7 @@ export const lang = {
 		"enterNetworkName": "Enter network name",
 		"nodeUrl": "Node URL",
 		"enterNodeUrl": "Enter node URL",
-		"chainId": "Chain ID (Optional)",
+		"chainId": "Chain ID",
 		"enterChainId": "Enter chain ID",
 		"cancel": "Cancel",
 		"save": "Save",

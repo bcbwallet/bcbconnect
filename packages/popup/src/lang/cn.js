@@ -277,7 +277,6 @@ export const lang = {
 		"createSuccess":"创建成功"
 	},
 	"importWallet":{//导入钱包界面
-		"enterKsPwd":"输入keystore密码",
 		"mnemonic":"助记词",
 		"enterNewPwd":"输入新密码",
 		"confirmPwd":"确认新密码",
@@ -445,7 +444,7 @@ export const lang = {
 		"enterNetworkName": "输入网络名称",
 		"nodeUrl": "节点URL",
 		"enterNodeUrl": "输入节点URL",
-		"chainId": "链ID (可选)",
+		"chainId": "链ID",
 		"enterChainId": "输入链ID",
 		"cancel": "取消",
 		"save": "保存"

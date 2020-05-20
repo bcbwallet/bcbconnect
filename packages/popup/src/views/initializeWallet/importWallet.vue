@@ -60,7 +60,7 @@
         <input
           type="password"
           name=""
-          :placeholder="$t('lang.importWallet.enterKsPwd')"
+          :placeholder="$t('lang.importWallet.enterKeystorePwd')"
           v-model="form.pwd"
         />
       </div>
