@@ -162,11 +162,7 @@ const backgroundScript = {
 
                 break;
             } case 'getBalance': {
-                let tokenAddress = data; // can be {}
-
-                if (tokenAddress === undefined || Object.keys(tokenAddress).length === 0) {
-                    tokenAddress = await this.walletService.getSelectedTokenAddress();
-                }
+                let tokenAddress = data;
 
                 let success;
                 try {
