@@ -19,27 +19,9 @@ import {
     LANGUAGES
 } from '@bcbconnect/lib/constants';
 import Utils from '@bcbconnect/lib/utils';
+import * as Settings from '@bcbconnect/lib/settings';
 
 const logger = new Logger('WalletService');
-
-const popupWindowSize = {
-    width: 360,
-    height: 600,
-    left: 80,
-    top: 80
-};
-
-// Enable on mainnet
-const defaultEnabledAssets = {
-    'BCB': {
-        icon: 'https://bcbpushsrv.bcbchain.io/public/resource/coin/icon/fae8dd88927ea0ca872a889681cd2902.png'
-    },
-    'DC': {
-        icon: 'https://bcbpushsrv.bcbchain.io/public/resource/coin/icon/ecdba0e2f6615760b196edd49a2f1bf0.png'
-    }
-};
-
-const FIATRATE_UPDATE_INTERVAL = 300; // secs
 
 class Wallet extends EventEmitter {
     constructor() {
@@ -126,7 +108,7 @@ class Wallet extends EventEmitter {
 
     async _setLanguage() {
         const language = await StorageService.getLanguage().catch(err => {});
-        this.language = language || 'en-US';
+        this.language = language || Settings.LANGUAGE;
         this.emit('setLanguage', this.language);
     }
 
@@ -183,7 +165,7 @@ class Wallet extends EventEmitter {
         // Check and set default network
         if (!network) {
             logger.info('Fallback to default chain');
-            await this.selectChain(NodeService.getDefaultChain());
+            await this.selectChain(this.getDefaultChain());
         } else {
             this.network = network;
             this.chain = chain;
@@ -442,7 +424,12 @@ class Wallet extends EventEmitter {
 
         return new Promise(resolve => {
             if(typeof chrome !== 'undefined') {
-                let rect = this._tweakWindowSize(popupWindowSize);
+                let rect = this._tweakWindowSize({
+                    width: Settings.POPUP_WIDTH,
+                    height: Settings.POPUP_HEIGHT,
+                    left: Settings.POPUP_LEFT,
+                    top: Settings.POPUP_TOP
+                });
                 return extensionizer.windows.update(this.popup.id, {
                     focused: true,
                     ...rect
@@ -453,7 +440,10 @@ class Wallet extends EventEmitter {
 
             extensionizer.windows.update(this.popup.id, {
                 focused: true,
-                ...popupWindowSize
+                width: Settings.POPUP_WIDTH,
+                height: Settings.POPUP_HEIGHT,
+                left: Settings.POPUP_LEFT,
+                top: Settings.POPUP_TOP
             }).then(resolve(true)).catch(() => resolve(false));
         });
     }
@@ -465,7 +455,12 @@ class Wallet extends EventEmitter {
 
         // Chrome accepts a callback to get details about the created window.
         if(typeof chrome !== 'undefined') {
-            let rect = this._tweakWindowSize(popupWindowSize);
+            let rect = this._tweakWindowSize({
+                width: Settings.POPUP_WIDTH,
+                height: Settings.POPUP_HEIGHT,
+                left: Settings.POPUP_LEFT,
+                top: Settings.POPUP_TOP
+            });
             return extensionizer.windows.create({
                 url: 'packages/popup/dist/index.html',
                 type: 'popup',
@@ -476,7 +471,10 @@ class Wallet extends EventEmitter {
         this.popup = await extensionizer.windows.create({
             url: 'packages/popup/dist/index.html',
             type: 'popup',
-            ...popupWindowSize
+            width: Settings.POPUP_WIDTH,
+            height: Settings.POPUP_HEIGHT,
+            left: Settings.POPUP_LEFT,
+            top: Settings.POPUP_TOP
         });
     }
 
@@ -807,18 +805,23 @@ class Wallet extends EventEmitter {
             NodeService.init();
             await NodeService.selectChain({ network, chain });
 
-            let tokenSymbol, source;
+            let tokenSymbol = Settings.DEFAULT_TOKEN;
+            let source;
             let walletProvider = false;
             if (WalletProvider.supports(network, chain)) {
                 walletProvider = new WalletProvider(network, chain);
-                tokenSymbol = walletProvider.getMainToken();
+                if (!tokenSymbol) {
+                    tokenSymbol = walletProvider.getMainToken();
+                }
                 source = 'network';
             } else {
                 let nodeInfo = await NodeService.getNodeInfo(await NodeService.getSeedNodeUrl(network));
                 if (!nodeInfo || !nodeInfo.token || !nodeInfo.token.symbol) {
                     ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No token info' });
                 }
-                tokenSymbol = nodeInfo.token.symbol;
+                if (!tokenSymbol) {
+                    tokenSymbol = nodeInfo.token.symbol;
+                }
                 // tag as 'user, balance is requested from node
                 source = 'user';
             }
@@ -856,11 +859,15 @@ class Wallet extends EventEmitter {
         }
     }
 
+    getDefaultChain() {
+        return { network: Settings.DEFAULT_NETWORK, chain: Settings.DEFAULT_CHAIN };
+    }
+
     getSelectedChain() {
-        if (this.network || this.chain) {
-            return { network: this.network, chain: this.chain };
+        if (this.network) {
+            return { network: this.network, chain: this.chain || this.network };
         }
-        return NodeService.getDefaultChain();
+        return this.getDefaultChain();
     }
 
     async selectNode(nodeID) {
@@ -895,7 +902,7 @@ class Wallet extends EventEmitter {
     }
 
     getSelectedToken() {
-        return this.selectedToken || '';
+        return this.selectedToken || Settings.DEFAULT_TOKEN;
     }
 
     isSelectedToken(token) {
@@ -912,7 +919,7 @@ class Wallet extends EventEmitter {
 
     getCurrency() {
         if (!this.currency) {
-            let currency = Utils.defaultCurrency(this.language);
+            let currency = Utils.getDefaultCurrency(this.language);
             this.setCurrency(currency);
         }
 
@@ -1018,7 +1025,7 @@ class Wallet extends EventEmitter {
         // Check fiatRate update time, fiatRate of selected token is cached
         if (this.isSelectedToken(token)) {
             let time = new Date().getTime();
-            if (time - this.fiatRateUpdatedTime < FIATRATE_UPDATE_INTERVAL) {
+            if (time - this.fiatRateUpdatedTime < Settings.FIATRATE_UPDATE_INTERVEL) {
                 return this.fiatRate;
             }
         }
@@ -1168,7 +1175,7 @@ class Wallet extends EventEmitter {
             });
             // Add default tokens
             if (this.walletProvider.isMainNet) {
-                for (const key in defaultEnabledAssets) {
+                for (const key in Settings.ENABLED_ASSETS) {
                     if (!(key in assets)) {
                         assets[key] = {
                             source: 'network',
@@ -1176,7 +1183,7 @@ class Wallet extends EventEmitter {
                         }
                     }
                     if (assets[key].icon === undefined) {
-                        assets[key].icon = defaultEnabledAssets[key].icon;
+                        assets[key].icon = Settings.ENABLED_ASSETS[key].icon;
                     }
                 }
             } 
@@ -1190,7 +1197,7 @@ class Wallet extends EventEmitter {
 
         const enabledAssets = {};
         for (const key in assets) {
-            if (key in defaultEnabledAssets && assets[key].enabled === undefined) {
+            if (key in Settings.ENABLED_ASSETS && assets[key].enabled === undefined) {
                 assets[key].enabled = true;
             }
             if (key === this.selectedToken) {
@@ -1313,7 +1320,7 @@ class Wallet extends EventEmitter {
 
     async getLanguage() {
         const language = await StorageService.getLanguage();
-        return language || '';
+        return language || Settings.LANGUAGE;
     }
 
     getAccount(accountId) {

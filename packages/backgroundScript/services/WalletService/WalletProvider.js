@@ -2,35 +2,17 @@ import Logger from '@bcbconnect/lib/logger';
 import axios from 'axios';
 import StorageService from '../StorageService';
 import { ERRORS, ErrorHandler } from '@bcbconnect/lib/errors';
+import * as Settings from '@bcbconnect/lib/settings';
 
 const logger = new Logger('WalletProvider');
-
-const providedNetworks = {
-    'bcb': {
-        chainId: 'bcb',
-        coinType: '0x1002',
-        default: true,
-        url: 'https://wallet.bcbchain.io',
-        token: 'BCB'
-    },
-    'bcbt': {
-        chainId: 'bcbt',
-        coinType: '0x1003',
-        default: true,
-        url: 'https://titanwallet.bcbchain.io',
-        token: 'BCBT'
-    }
-};
-
-const walletAppId = '100';
 
 class WalletProvider {
 
     constructor(network, chain) {
         logger.info('New WalletProvider', network, chain);
-        if (network in providedNetworks) {
+        if (network in Settings.PROVIDER_NETWORKS) {
             this.network = network;
-            this.provider = providedNetworks[this.network];
+            this.provider = Settings.PROVIDER_NETWORKS[this.network];
             this.chain = chain;
         } else {
             ErrorHandler.throwError(ERRORS.WRONG_NETWORK_ID);
@@ -38,11 +20,11 @@ class WalletProvider {
     }
 
     static supports(network, chain) {
-        return (network in providedNetworks);
+        return (network in Settings.PROVIDER_NETWORKS);
     }
 
     getMainToken() {
-        return providedNetworks[this.network].token;
+        return Settings.PROVIDER_NETWORKS[this.network].token;
     }
 
     get isMainNet() {
@@ -106,7 +88,7 @@ class WalletProvider {
         let url = this.isSideChain ? `${this.provider.url}/${this.chain}` : this.provider.url;
         let coinType = this.provider.coinType;
         let result = await this._request(
-            `${url}/api/v2/addrs/balance/${coinType}/${address}/${currency}?appId=${walletAppId}`
+            `${url}/api/v2/addrs/balance/${coinType}/${address}/${currency}?appId=${Settings.PROVIDER_APP_ID}`
         );
         this._checkResultThrowsError(result);
 
@@ -129,7 +111,7 @@ class WalletProvider {
         let url = this.isSideChain ? `${this.provider.url}/${this.chain}` : this.provider.url;
         let coinType = this.provider.coinType;
         let result = await this._request(
-            `${url}/api/v1/addrs/token_balance/single/${coinType}/${tokenAddress}/${address}?legal=${currency}&appId=${walletAppId}`
+            `${url}/api/v1/addrs/token_balance/single/${coinType}/${tokenAddress}/${address}?legal=${currency}&appId=${Settings.PROVIDER_APP_ID}`
         );
         // console.log(result)
         this._checkResultThrowsError(result);

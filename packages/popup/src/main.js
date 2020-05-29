@@ -4,9 +4,14 @@ import router from "./router";
 import store from "./store";
 import axios from "axios";
 import $url from "./utils/url.js";
-import "mint-ui/lib/style.css";
+
 import "./assets/css/reset.css";
 import "./assets/css/common.styl";
+
+import Mint from 'mint-ui';
+import 'mint-ui/lib/style.css';
+
+Vue.use(Mint);
 
 import { PopupAPI } from "@bcbconnect/lib/api";
 import MessageDuplex from "@bcbconnect/lib/MessageDuplex";

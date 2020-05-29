@@ -8,29 +8,9 @@ import axios from 'axios';
 import { hexlify, arrayify, concat } from '@bcbconnect/lib/bytes';
 import { deepCopy, sleep } from '@bcbconnect/lib/common';
 import { ERRORS, ErrorHandler } from '@bcbconnect/lib/errors';
+import * as Settings from '@bcbconnect/lib/settings';
 
 const logger = new Logger('NodeService');
-
-const publicNetworks = {
-    'bcb': {
-        name: 'Mainnet',
-        chains: ['bcb'],
-        public: true,
-        urls: [
-            'https://earth.bcbchain.io'
-        ]
-    },
-    'bcbt': {
-        name: 'Testnet',
-        chains: ['bcbt'],
-        public: true,
-        urls: [
-            'https://test-earth.bcbchain.io'
-        ]
-    }
-};
-
-const disabledChains = [ 'yy', 'jiujiu', 'jiuj' ];
 
 const NodeService = {
     // keep on reset
@@ -82,7 +62,7 @@ const NodeService = {
 
         const networks = StorageService.getNetworks();
         console.log('networks from storage', networks)
-        this.networks = Object.keys(networks).length ? networks : deepCopy(publicNetworks);
+        this.networks = Object.keys(networks).length ? networks : deepCopy(Settings.PUBLIC_NETWORKS);
 
         let chainOpts = StorageService.getSelectedChain();
         // migrating data from version 1.0
@@ -196,7 +176,7 @@ const NodeService = {
             chains.push(chain);
         });
         logger.info(`chains: ${chains}`);
-        chains = chains.filter(chain => !(disabledChains.includes(chain)));
+        chains = chains.filter(chain => !(Settings.DISABLED_CHAINS.includes(chain)));
         if (chains.length > 0) {
             this.networks[network].chains = chains;
             this.saveNetworks();
@@ -288,14 +268,14 @@ const NodeService = {
     },
 
     getDefaultChain() {
-        let keys = Object.keys(publicNetworks);
+        let keys = Object.keys(Settings.PUBLIC_NETWORKS);
         let network = keys[0];
-        let chain = publicNetworks[network].chains[0];
+        let chain = Settings.PUBLIC_NETWORKS[network].chains[0];
         return { network, chain };
     },
 
     isPublicNetwork(network) {
-        return (network in publicNetworks);
+        return (network in Settings.PUBLIC_NETWORKS);
     },
 
     async addNetwork(networkInfo) {
@@ -363,7 +343,7 @@ const NodeService = {
         logger.info('networks:', this.networks);
 
         if (!this.networks || !Object.keys(this.networks).length) {
-            this.networks = deepCopy(publicNetworks);
+            this.networks = deepCopy(Settings.PUBLIC_NETWORKS);
         }
 
         let networks = {};
@@ -473,10 +453,10 @@ const NodeService = {
     },
 
     getDefaultNodeUrl(networkId) {
-        if (!(networkId in publicNetworks)) {
+        if (!(networkId in Settings.PUBLIC_NETWORKS)) {
             ErrorHandler.throwError({ id: ERRORS.WRONG_NETWORK_ID, data: `No default node for ${networkId}` });
         }
-        return publicNetworks[networkId].urls[0];
+        return Settings.PUBLIC_NETWORKS[networkId].urls[0];
     },
 
     async getSeedNodeUrl(network) {

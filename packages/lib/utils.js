@@ -112,15 +112,16 @@ const Utils = {
         });
     },
 
-    defaultCurrency(lang) {
+    getDefaultCurrency(lang) {
         switch (lang) {
+            case 'en-US':
+                return 'USD';
             case 'zh-CN':
                 return 'CNY';
             default:
                 return 'USD';
         }
     }
-
 };
 
 export default Utils;
