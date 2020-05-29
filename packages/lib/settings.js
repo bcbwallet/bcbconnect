@@ -1,9 +1,9 @@
-export const LANGUAGE = 'zh-CN';
+export const LANGUAGE = '';
 
 export const DEFAULT_NETWORK = 'bcb';
-export const DEFAULT_CHAIN = 'jf';
+export const DEFAULT_CHAIN = 'bcb';
 
-export const DEFAULT_TOKEN = 'DC';
+export const DEFAULT_TOKEN = 'BCB';
 
 export const POPUP_WIDTH = 360;
 export const POPUP_HEIGHT = 600;
