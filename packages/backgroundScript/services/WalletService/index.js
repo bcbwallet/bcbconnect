@@ -996,7 +996,7 @@ class Wallet extends EventEmitter {
             if (result.balance == 0) {
                 result.fiatValue = 0;
             } else {
-                let fiatRate = await this.getfiatRate(token);
+                let fiatRate = await this.getFiatRate(token);
                 if (fiatRate) {
                     result.fiatValue = result.balance * fiatRate;
                 }
@@ -1011,7 +1011,7 @@ class Wallet extends EventEmitter {
         return result;
     }
 
-    async getfiatRate(token) {
+    async getFiatRate(token) {
         logger.info('Get fiat rate');
 
         if (!token) {
@@ -1025,7 +1025,7 @@ class Wallet extends EventEmitter {
         // Check fiatRate update time, fiatRate of selected token is cached
         if (this.isSelectedToken(token)) {
             let time = new Date().getTime();
-            if (time - this.fiatRateUpdatedTime < Settings.FIATRATE_UPDATE_INTERVEL) {
+            if (time - this.fiatRateUpdatedTime < Settings.FIATRATE_UPDATE_INTERVAL * 1000) {
                 return this.fiatRate;
             }
         }
