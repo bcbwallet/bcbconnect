@@ -16,7 +16,7 @@ import {
     APP_STATE,
     ACCOUNT_TYPE,
     CONFIRMATION_TYPE,
-    LANGUAGES
+    LANGUAGES,
 } from '@bcbconnect/lib/constants';
 import Utils from '@bcbconnect/lib/utils';
 import * as Settings from '@bcbconnect/lib/settings';
@@ -45,10 +45,10 @@ class Wallet extends EventEmitter {
     }
 
     _clearAssets() {
-        Object.keys(this.assets).forEach(key => {
+        Object.keys(this.assets).forEach((key) => {
             this.assets[key].balance = 0;
             this.assets[key].fiatValue = 0;
-        }); 
+        });
         this.assetsUpdated = false;
         this.saveNetworkAssets();
     }
@@ -107,15 +107,15 @@ class Wallet extends EventEmitter {
     }
 
     async _setLanguage() {
-        const language = await StorageService.getLanguage().catch(err => {});
+        const language = await StorageService.getLanguage().catch((err) => {});
         this.language = language || Settings.LANGUAGE;
         this.emit('setLanguage', this.language);
     }
 
     _setState(appState) {
-        logger.info(`Setting app state to ${ appState }`);
+        logger.info(`Setting app state to ${appState}`);
 
-        if(this.state === appState) {
+        if (this.state === appState) {
             return;
         }
 
@@ -133,10 +133,16 @@ class Wallet extends EventEmitter {
         logger.info('Load assets');
 
         if (!this.network) {
-            ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'Network not set' });
+            ErrorHandler.throwError({
+                id: ERRORS.INTERNEL_ERROR,
+                data: 'Network not set',
+            });
         }
         const allAssets = StorageService.getAssets();
-        if (allAssets[this.network] && Object.keys(allAssets[this.network]).length) {
+        if (
+            allAssets[this.network] &&
+            Object.keys(allAssets[this.network]).length
+        ) {
             this.assets = allAssets[this.network];
         }
         const selectedToken = StorageService.getSelectedToken();
@@ -144,7 +150,9 @@ class Wallet extends EventEmitter {
             this.selectedToken = selectedToken;
         } else {
             // default token
-            let tokenInfo = await NodeService.getTokenInfoOfNetwork(this.network);
+            let tokenInfo = await NodeService.getTokenInfoOfNetwork(
+                this.network
+            );
             this.selectedToken = tokenInfo.symbol;
             StorageService.saveSelectedToken(this.selectedToken);
         }
@@ -152,7 +160,14 @@ class Wallet extends EventEmitter {
         if (currency) {
             this.currency = currency;
         }
-        logger.info('assets:', this.assets, 'selectedToken:', this.selectedToken, 'currency:', this.currency);
+        logger.info(
+            'assets:',
+            this.assets,
+            'selectedToken:',
+            this.selectedToken,
+            'currency:',
+            this.currency
+        );
     }
 
     async _loadChainSettings() {
@@ -190,7 +205,7 @@ class Wallet extends EventEmitter {
         logger.info('Stored accounts:', accounts, 'selected:', selectedAccount);
 
         // Compute account addresses by current network
-        Object.entries(accounts).forEach(([ accountId, account ]) => {
+        Object.entries(accounts).forEach(([accountId, account]) => {
             let accountObj;
             if (account.type === ACCOUNT_TYPE.MNEMONIC) {
                 let mnemonic = StorageService.getMnemonic();
@@ -204,17 +219,20 @@ class Wallet extends EventEmitter {
                 accountObj = new Account(
                     this.network,
                     account.type,
-                    account.privateKey,
+                    account.privateKey
                 );
             }
             // accountObj.loadCache();
             accountObj.name = account.name;
-            this.accounts[ accountId ] = accountObj;
+            this.accounts[accountId] = accountObj;
         });
         this.emit('setAccounts', this.getAccounts());
 
         if (!(selectedAccount in accounts)) {
-            ErrorHandler.throwError({ id: ERRORS.DATA_CORRUPT, data: 'Selected account' });
+            ErrorHandler.throwError({
+                id: ERRORS.DATA_CORRUPT,
+                data: 'Selected account',
+            });
         }
         this.selectedAccount = selectedAccount;
         this.emit('setAccount', this.getAccountDetails(this.selectedAccount));
@@ -222,7 +240,7 @@ class Wallet extends EventEmitter {
 
     // _poll(fn, interval) {
     //     interval = interval || 1000;
-    
+
     //     var checkCondition = function(resolve, reject) {
     //         var result = fn();
     //         if (result) {
@@ -231,14 +249,14 @@ class Wallet extends EventEmitter {
     //             setTimeout(checkCondition, interval, resolve, reject);
     //         }
     //     };
-    
+
     //     return new Promise(checkCondition);
     // }
 
     async _pollAccounts() {
         logger.info('Polling ...');
         clearTimeout(this._timer);
-        if(!this._shouldPoll) {
+        if (!this._shouldPoll) {
             logger.info('Stopped polling');
             return;
         }
@@ -277,10 +295,12 @@ class Wallet extends EventEmitter {
             APP_STATE.SEND,
             APP_STATE.TRANSACTIONS,
             APP_STATE.SETTING,
-            APP_STATE.READY
+            APP_STATE.READY,
         ];
-        if(!stateAry.includes(appState)) {
-            return logger.error(`Attempted to change app state to ${ appState }. Only 'restoring' and 'creating' is permitted`);
+        if (!stateAry.includes(appState)) {
+            return logger.error(
+                `Attempted to change app state to ${appState}. Only 'restoring' and 'creating' is permitted`
+            );
         }
 
         this._setState(appState);
@@ -309,8 +329,10 @@ class Wallet extends EventEmitter {
     }
 
     isReady() {
-        return this.state !== APP_STATE.UNINITIALISED
-            && this.state !== APP_STATE.PASSWORD_SET;
+        return (
+            this.state !== APP_STATE.UNINITIALISED &&
+            this.state !== APP_STATE.PASSWORD_SET
+        );
     }
 
     checkReadyThrowsError() {
@@ -330,7 +352,10 @@ class Wallet extends EventEmitter {
     }
 
     async setPassword(password) {
-        if(this.state !== APP_STATE.UNINITIALISED && this.state !== APP_STATE.PASSWORD_SET) {
+        if (
+            this.state !== APP_STATE.UNINITIALISED &&
+            this.state !== APP_STATE.PASSWORD_SET
+        ) {
             ErrorHandler.throwError(ERRORS.WRONG_APP_STATE);
         }
 
@@ -346,7 +371,7 @@ class Wallet extends EventEmitter {
     }
 
     async changePassword({ oldPassword, newPassword }) {
-        if(!StorageService.ready) {
+        if (!StorageService.ready) {
             ErrorHandler.throwError(ERRORS.NOT_UNLOCKED);
         }
 
@@ -365,17 +390,19 @@ class Wallet extends EventEmitter {
     async unlockWallet(password) {
         logger.info('Unlock wallet');
 
-        if(this.state !== APP_STATE.PASSWORD_SET) {
-            logger.error('Attempted to unlock wallet whilst not in PASSWORD_SET state');
+        if (this.state !== APP_STATE.PASSWORD_SET) {
+            logger.error(
+                'Attempted to unlock wallet whilst not in PASSWORD_SET state'
+            );
             ErrorHandler.throwError(ERRORS.NOT_LOCKED);
         }
 
-        await StorageService.unlock(password).catch(err => {
+        await StorageService.unlock(password).catch((err) => {
             logger.error('Failed to unlock wallet:', err);
             ErrorHandler.throwError(ERRORS.WRONG_PASSWORD);
         });
 
-        if(!StorageService.hasAccounts) {
+        if (!StorageService.hasAccounts) {
             logger.warn('Wallet does not have any accounts');
             return false;
         }
@@ -422,50 +449,60 @@ class Wallet extends EventEmitter {
     async _updateWindow() {
         logger.info('Update popup window');
 
-        return new Promise(resolve => {
-            if(typeof chrome !== 'undefined') {
+        return new Promise((resolve) => {
+            if (typeof chrome !== 'undefined') {
                 let rect = this._tweakWindowSize({
                     width: Settings.POPUP_WIDTH,
                     height: Settings.POPUP_HEIGHT,
                     left: Settings.POPUP_LEFT,
-                    top: Settings.POPUP_TOP
+                    top: Settings.POPUP_TOP,
                 });
-                return extensionizer.windows.update(this.popup.id, {
-                    focused: true,
-                    ...rect
-                }, window => {
-                    resolve(!!window);
-                });
+                return extensionizer.windows.update(
+                    this.popup.id,
+                    {
+                        focused: true,
+                        ...rect,
+                    },
+                    (window) => {
+                        resolve(!!window);
+                    }
+                );
             }
 
-            extensionizer.windows.update(this.popup.id, {
-                focused: true,
-                width: Settings.POPUP_WIDTH,
-                height: Settings.POPUP_HEIGHT,
-                left: Settings.POPUP_LEFT,
-                top: Settings.POPUP_TOP
-            }).then(resolve(true)).catch(() => resolve(false));
+            extensionizer.windows
+                .update(this.popup.id, {
+                    focused: true,
+                    width: Settings.POPUP_WIDTH,
+                    height: Settings.POPUP_HEIGHT,
+                    left: Settings.POPUP_LEFT,
+                    top: Settings.POPUP_TOP,
+                })
+                .then(resolve(true))
+                .catch(() => resolve(false));
         });
     }
 
     async _openPopup() {
-        if(this.popup && await this._updateWindow()) {
+        if (this.popup && (await this._updateWindow())) {
             return;
         }
 
         // Chrome accepts a callback to get details about the created window.
-        if(typeof chrome !== 'undefined') {
+        if (typeof chrome !== 'undefined') {
             let rect = this._tweakWindowSize({
                 width: Settings.POPUP_WIDTH,
                 height: Settings.POPUP_HEIGHT,
                 left: Settings.POPUP_LEFT,
-                top: Settings.POPUP_TOP
+                top: Settings.POPUP_TOP,
             });
-            return extensionizer.windows.create({
-                url: 'packages/popup/dist/index.html',
-                type: 'popup',
-                ...rect
-            }, window => this.popup = window);
+            return extensionizer.windows.create(
+                {
+                    url: 'packages/popup/dist/index.html',
+                    type: 'popup',
+                    ...rect,
+                },
+                (window) => (this.popup = window)
+            );
         }
 
         this.popup = await extensionizer.windows.create({
@@ -474,7 +511,7 @@ class Wallet extends EventEmitter {
             width: Settings.POPUP_WIDTH,
             height: Settings.POPUP_HEIGHT,
             left: Settings.POPUP_LEFT,
-            top: Settings.POPUP_TOP
+            top: Settings.POPUP_TOP,
         });
     }
 
@@ -495,7 +532,10 @@ class Wallet extends EventEmitter {
     }
 
     async queueConfirmation(confirmation, uuid, callback) {
-        logger.info(`Queue confirmation ${uuid}`, { ...confirmation, result: '' });
+        logger.info(`Queue confirmation ${uuid}`, {
+            ...confirmation,
+            result: '',
+        });
 
         if (this.confirmations.length > 0) {
             // TODO? A confirmation is pending
@@ -520,16 +560,12 @@ class Wallet extends EventEmitter {
             return this._closePopup();
         }
 
-        const {
-            confirmation,
-            callback,
-            uuid
-        } = this.confirmations.pop();
+        const { confirmation, callback, uuid } = this.confirmations.pop();
 
         callback({
             success: true,
             data: confirmation.result,
-            uuid
+            uuid,
         });
 
         this._closePopup();
@@ -544,16 +580,12 @@ class Wallet extends EventEmitter {
             return this._closePopup();
         }
 
-        const {
-            confirmation,
-            callback,
-            uuid
-        } = this.confirmations.pop();
+        const { confirmation, callback, uuid } = this.confirmations.pop();
 
         callback({
             success: false,
             data: ErrorHandler.newError(ERRORS.REQUEST_DECLINED),
-            uuid
+            uuid,
         });
 
         this._closePopup();
@@ -569,7 +601,10 @@ class Wallet extends EventEmitter {
         }
         let accountIndex = StorageService.getAccountIndex();
         if (!Number.isInteger(accountIndex)) {
-            ErrorHandler.throwError({ id: ERRORS.DATA_CORRUPT, data: 'Account index' });
+            ErrorHandler.throwError({
+                id: ERRORS.DATA_CORRUPT,
+                data: 'Account index',
+            });
         }
         accountIndex += 1;
         let account = new Account(
@@ -587,16 +622,16 @@ class Wallet extends EventEmitter {
         logger.info('Save account', accountId);
         const accounts = StorageService.getAccounts();
         const { type, name, lastUpdated } = account;
-        accounts[ accountId ] = {
+        accounts[accountId] = {
             type,
             name,
-            lastUpdated
-        }
+            lastUpdated,
+        };
 
         if (type === ACCOUNT_TYPE.MNEMONIC) {
-            accounts[ accountId ].accountIndex = account.accountIndex;
+            accounts[accountId].accountIndex = account.accountIndex;
         } else {
-            accounts[ accountId ].privateKey = account.privateKey;
+            accounts[accountId].privateKey = account.privateKey;
         }
         StorageService.saveAccounts(accounts);
     }
@@ -609,7 +644,7 @@ class Wallet extends EventEmitter {
      */
 
     async addAccount(name) {
-        logger.info(`Adding account '${ name }' from popup`);
+        logger.info(`Adding account '${name}' from popup`);
 
         // if (!this.mnemonic) {
         //     this.mnemonic = StorageService.getMnemonic();
@@ -623,20 +658,19 @@ class Wallet extends EventEmitter {
         account.name = name;
 
         const accountId = UUID();
-        this.accounts[ accountId ] = account;
+        this.accounts[accountId] = account;
         this._saveAccount(accountId, account);
         this.emit('setAccounts', this.getAccounts());
         this.selectAccount(accountId);
 
         return true;
     }
-    
-    setAccountName({ accountId, name }) {
-        if (!(accountId in this.accounts))
-            return false;
 
-        this.accounts[ accountId ].name = name;
-        this._saveAccount(accountId, this.accounts[ accountId ]);
+    setAccountName({ accountId, name }) {
+        if (!(accountId in this.accounts)) return false;
+
+        this.accounts[accountId].name = name;
+        this._saveAccount(accountId, this.accounts[accountId]);
 
         if (accountId == this.selectedAccount) {
             this.emit('setAccount', this.getAccountDetails(accountId));
@@ -663,7 +697,7 @@ class Wallet extends EventEmitter {
      */
 
     async importAccount({ privateKey, name }) {
-        logger.info(`Importing account '${ name }' from popup`);
+        logger.info(`Importing account '${name}' from popup`);
 
         const account = new Account(
             this.network,
@@ -680,7 +714,7 @@ class Wallet extends EventEmitter {
         //     this.setCache();
         // }
         const accountId = UUID();
-        this.accounts[ accountId ] = account;
+        this.accounts[accountId] = account;
         this._saveAccount(accountId, account);
 
         this.emit('setAccounts', this.getAccounts());
@@ -693,7 +727,7 @@ class Wallet extends EventEmitter {
     }
 
     async importMnemonic({ mnemonic, name }) {
-        logger.info(`Importing account '${ name }' from popup`);
+        logger.info(`Importing account '${name}' from popup`);
 
         const account = new Account(
             this.network,
@@ -706,7 +740,7 @@ class Wallet extends EventEmitter {
         //     this.setCache();
         // }
         const accountId = UUID();
-        this.accounts[ accountId ] = account;
+        this.accounts[accountId] = account;
         this._saveAccount(accountId, account);
 
         StorageService.saveMnemonic(mnemonic);
@@ -718,7 +752,7 @@ class Wallet extends EventEmitter {
     }
 
     async importJsonWallet({ json, password, name }) {
-        logger.info(`Adding account '${ name }' from popup`);
+        logger.info(`Adding account '${name}' from popup`);
         // if(Object.keys(this.accounts).length === 0) {
         //     this.setCache();
         // }
@@ -727,7 +761,7 @@ class Wallet extends EventEmitter {
         const account = new Account(
             wallet.network,
             ACCOUNT_TYPE.PRIVATE_KEY,
-            wallet.privateKey,
+            wallet.privateKey
         );
 
         if (this._accountExists(account.address)) {
@@ -737,7 +771,7 @@ class Wallet extends EventEmitter {
         account.name = name;
 
         const accountId = UUID();
-        this.accounts[ accountId ] = account;
+        this.accounts[accountId] = account;
         this._saveAccount(accountId, account);
 
         this.emit('setAccounts', this.getAccounts());
@@ -769,15 +803,18 @@ class Wallet extends EventEmitter {
     }
 
     getAccounts() {
-        const accounts = Object.entries(this.accounts).reduce((accounts, [ accountId, account ]) => {
-            accounts[ accountId ] = {
-                address: this.getChainAddress(account.address),
-                name: account.name,
-                type: account.type
-            };
+        const accounts = Object.entries(this.accounts).reduce(
+            (accounts, [accountId, account]) => {
+                accounts[accountId] = {
+                    address: this.getChainAddress(account.address),
+                    name: account.name,
+                    type: account.type,
+                };
 
-            return accounts;
-        }, {});
+                return accounts;
+            },
+            {}
+        );
         return accounts;
     }
 
@@ -794,18 +831,22 @@ class Wallet extends EventEmitter {
 
         let { network, chain } = chainOpts;
         if (!network) {
-            ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No network' });
+            ErrorHandler.throwError({
+                id: ERRORS.INTERNEL_ERROR,
+                data: 'No network',
+            });
         }
         if (!chain) {
             chain = network;
         }
-        let networkChanged = (network !== this.network);
+        let networkChanged = network !== this.network;
 
         try {
             NodeService.init();
             await NodeService.selectChain({ network, chain });
 
-            let tokenSymbol = Settings.DEFAULT_TOKEN;
+            // let tokenSymbol = Settings.DEFAULT_TOKEN;
+            let tokenSymbol = '';
             let source;
             let walletProvider = false;
             if (WalletProvider.supports(network, chain)) {
@@ -815,9 +856,14 @@ class Wallet extends EventEmitter {
                 }
                 source = 'network';
             } else {
-                let nodeInfo = await NodeService.getNodeInfo(await NodeService.getSeedNodeUrl(network));
+                let nodeInfo = await NodeService.getNodeInfo(
+                    await NodeService.getSeedNodeUrl(network)
+                );
                 if (!nodeInfo || !nodeInfo.token || !nodeInfo.token.symbol) {
-                    ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No token info' });
+                    ErrorHandler.throwError({
+                        id: ERRORS.INTERNEL_ERROR,
+                        data: 'No token info',
+                    });
                 }
                 if (!tokenSymbol) {
                     tokenSymbol = nodeInfo.token.symbol;
@@ -826,7 +872,10 @@ class Wallet extends EventEmitter {
                 source = 'user';
             }
 
-            this.reset({ keepAccounts: !networkChanged, keepAssets: !networkChanged });
+            this.reset({
+                keepAccounts: !networkChanged,
+                keepAssets: !networkChanged,
+            });
             this.network = network;
             this.chain = chain;
             this.emit('setChain', { network, chain });
@@ -848,19 +897,28 @@ class Wallet extends EventEmitter {
                     this._loadAccounts();
                 } else {
                     this.emit('setAccounts', this.getAccounts());
-                    this.emit('setAccount', this.getAccountDetails(this.selectedAccount));
+                    this.emit(
+                        'setAccount',
+                        this.getAccountDetails(this.selectedAccount)
+                    );
                 }
             }
             return true;
-        } catch(err) {
+        } catch (err) {
             // rollback
-            await NodeService.selectChain({ network: this.network, chain: this.chain });
+            await NodeService.selectChain({
+                network: this.network,
+                chain: this.chain,
+            });
             throw err;
         }
     }
 
     getDefaultChain() {
-        return { network: Settings.DEFAULT_NETWORK, chain: Settings.DEFAULT_CHAIN };
+        return {
+            network: Settings.DEFAULT_NETWORK,
+            chain: Settings.DEFAULT_CHAIN,
+        };
     }
 
     getSelectedChain() {
@@ -931,12 +989,16 @@ class Wallet extends EventEmitter {
     }
 
     async getSelectedTokenAddress() {
-        let tokenAddress = await NodeService.getTokenAddressBySymbol(this.selectedToken);
+        let tokenAddress = await NodeService.getTokenAddressBySymbol(
+            this.selectedToken
+        );
         return tokenAddress;
     }
 
     async isSelectedTokenAddress(tokenAddress) {
-        let selectedTokenAddress = await NodeService.getTokenAddressBySymbol(this.selectedToken);
+        let selectedTokenAddress = await NodeService.getTokenAddressBySymbol(
+            this.selectedToken
+        );
         return tokenAddress === selectedTokenAddress;
     }
 
@@ -971,7 +1033,15 @@ class Wallet extends EventEmitter {
         let address = this.getSelectedAccountAddress();
         let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
 
-        let { balance, fiatValue, fees } = await this.walletProvider.getBalanceFees(address, tokenAddress, this.currency);
+        let {
+            balance,
+            fiatValue,
+            fees,
+        } = await this.walletProvider.getBalanceFees(
+            address,
+            tokenAddress,
+            this.currency
+        );
         return {
             balance,
             fiatValue,
@@ -987,7 +1057,10 @@ class Wallet extends EventEmitter {
             if (this.selectedToken) {
                 token = this.selectedToken;
             } else {
-                ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No selected token' });
+                ErrorHandler.throwError({
+                    id: ERRORS.INTERNEL_ERROR,
+                    data: 'No selected token',
+                });
             }
         }
 
@@ -1018,14 +1091,20 @@ class Wallet extends EventEmitter {
             if (this.selectedToken) {
                 token = this.selectedToken;
             } else {
-                ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No selected token' });
+                ErrorHandler.throwError({
+                    id: ERRORS.INTERNEL_ERROR,
+                    data: 'No selected token',
+                });
             }
         }
 
         // Check fiatRate update time, fiatRate of selected token is cached
         if (this.isSelectedToken(token)) {
             let time = new Date().getTime();
-            if (time - this.fiatRateUpdatedTime < Settings.FIATRATE_UPDATE_INTERVAL * 1000) {
+            if (
+                time - this.fiatRateUpdatedTime <
+                Settings.FIATRATE_UPDATE_INTERVAL * 1000
+            ) {
                 return this.fiatRate;
             }
         }
@@ -1033,8 +1112,12 @@ class Wallet extends EventEmitter {
         let address = this.getSelectedAccountAddress();
         let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
 
-        let { balance, fiatValue } = await this.walletProvider.getBalanceFees(address, tokenAddress, this.currency);
-        let fiatRate =  fiatValue / balance;
+        let { balance, fiatValue } = await this.walletProvider.getBalanceFees(
+            address,
+            tokenAddress,
+            this.currency
+        );
+        let fiatRate = fiatValue / balance;
 
         // Save fiatRate update time
         if (this.isSelectedToken(token)) {
@@ -1051,7 +1134,10 @@ class Wallet extends EventEmitter {
             if (this.selectedToken) {
                 token = this.selectedToken;
             } else {
-                ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No selected token' });
+                ErrorHandler.throwError({
+                    id: ERRORS.INTERNEL_ERROR,
+                    data: 'No selected token',
+                });
             }
         }
 
@@ -1059,10 +1145,14 @@ class Wallet extends EventEmitter {
         let tokenAddress = await NodeService.getTokenAddressBySymbol(token);
 
         if (this.walletProvider) {
-            let { fees } = await this.walletProvider.getBalanceFees(address, tokenAddress, this.currency);
+            let { fees } = await this.walletProvider.getBalanceFees(
+                address,
+                tokenAddress,
+                this.currency
+            );
             return {
                 fees,
-                feeToken: this.walletProvider.getMainToken()
+                feeToken: this.walletProvider.getMainToken(),
             };
         } else {
             return {};
@@ -1071,7 +1161,7 @@ class Wallet extends EventEmitter {
 
     async getNetworkAssets() {
         logger.info('Get network assets', this.assets);
-        
+
         return this.assets;
     }
 
@@ -1095,13 +1185,16 @@ class Wallet extends EventEmitter {
         logger.info('Enable assets:', assets);
 
         if (!Array.isArray(assets)) {
-            ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No asset list' });
+            ErrorHandler.throwError({
+                id: ERRORS.INTERNEL_ERROR,
+                data: 'No asset list',
+            });
         }
 
         let changed = false;
         let walletAssets = deepCopy(this.assets);
         logger.info('current assets:', walletAssets);
-        Object.keys(walletAssets).forEach(key => {
+        Object.keys(walletAssets).forEach((key) => {
             if (assets.includes(key)) {
                 if (walletAssets[key].enabled !== true) {
                     changed = true;
@@ -1125,9 +1218,12 @@ class Wallet extends EventEmitter {
         logger.info('Add asset', symbol, opts);
 
         if (symbol in this.assets) {
-            ErrorHandler.throwError({ id: ERRORS.TOKEN_EXISTS, data: `${symbol} exists` });
+            ErrorHandler.throwError({
+                id: ERRORS.TOKEN_EXISTS,
+                data: `${symbol} exists`,
+            });
         }
-        let source = (opts && opts.source !== undefined) ? opts.source : 'user';
+        let source = opts && opts.source !== undefined ? opts.source : 'user';
         let tokenAddress = await NodeService.getTokenAddressBySymbol(symbol);
         this.assets[symbol] = { address: tokenAddress, enabled: true, source };
     }
@@ -1138,13 +1234,13 @@ class Wallet extends EventEmitter {
         return true;
     }
 
-    async _updateNetworkAssets() {  
+    async _updateNetworkAssets() {
         if (!this.walletProvider) {
             ErrorHandler.throwError(ERRORS.NO_WALLET_PROVIDER);
         }
 
         let assets = await this.walletProvider.getNetworkAssets();
-        Object.keys(assets).forEach(key => {
+        Object.keys(assets).forEach((key) => {
             assets[key].source = 'network';
         });
 
@@ -1159,11 +1255,14 @@ class Wallet extends EventEmitter {
         const assets = deepCopy(this.assets);
         if (this.walletProvider) {
             let address = this.getSelectedAccountAddress();
-            let accountAssets = await this.walletProvider.getAccountAssets(address, this.currency);
+            let accountAssets = await this.walletProvider.getAccountAssets(
+                address,
+                this.currency
+            );
 
             // console.log('updated assets', accountAssets)
             // console.log('current assets', assets)
-            Object.entries(accountAssets).forEach(([ key, value ]) => {
+            Object.entries(accountAssets).forEach(([key, value]) => {
                 // keep enabled
                 let enabled = assets[key] && assets[key].enabled;
                 assets[key] = { ...value };
@@ -1179,25 +1278,31 @@ class Wallet extends EventEmitter {
                     if (!(key in assets)) {
                         assets[key] = {
                             source: 'network',
-                            enabled: true
-                        }
+                            enabled: true,
+                        };
                     }
                     if (assets[key].icon === undefined) {
                         assets[key].icon = Settings.ENABLED_ASSETS[key].icon;
                     }
                 }
-            } 
-            Object.keys(assets).forEach(key => {
-                if (assets[key].source === 'network' && assets[key].balance === undefined) {
+            }
+            Object.keys(assets).forEach((key) => {
+                if (
+                    assets[key].source === 'network' &&
+                    assets[key].balance === undefined
+                ) {
                     assets[key].balance = 0;
                     assets[key].fiatValue = 0;
                 }
-            });         
+            });
         }
 
         const enabledAssets = {};
         for (const key in assets) {
-            if (key in Settings.ENABLED_ASSETS && assets[key].enabled === undefined) {
+            if (
+                key in Settings.ENABLED_ASSETS &&
+                assets[key].enabled === undefined
+            ) {
                 assets[key].enabled = true;
             }
             if (key === this.selectedToken) {
@@ -1217,7 +1322,7 @@ class Wallet extends EventEmitter {
         this.assetsUpdated = new Date().getTime();
 
         logger.info('enabled assets:', enabledAssets);
-        logger.info('token:', this.selectedToken)
+        logger.info('token:', this.selectedToken);
         return enabledAssets;
     }
 
@@ -1228,12 +1333,22 @@ class Wallet extends EventEmitter {
             ErrorHandler.throwError(ERRORS.NO_WALLET_PROVIDER);
         }
         if (!this.selectedToken) {
-            ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: 'No selected token' });
+            ErrorHandler.throwError({
+                id: ERRORS.INTERNEL_ERROR,
+                data: 'No selected token',
+            });
         }
-        let tokenAddress = await NodeService.getTokenAddressBySymbol(this.selectedToken);
+        let tokenAddress = await NodeService.getTokenAddressBySymbol(
+            this.selectedToken
+        );
 
         let address = this.getSelectedAccountAddress();
-        let result = await this.walletProvider.getAccountTransactions(address, tokenAddress, page, pageSize);
+        let result = await this.walletProvider.getAccountTransactions(
+            address,
+            tokenAddress,
+            page,
+            pageSize
+        );
         // logger.info('transactions:', result);
         return result;
     }
@@ -1247,7 +1362,7 @@ class Wallet extends EventEmitter {
         }
 
         let currentSettings = StorageService.getSettings();
-        Object.keys(settings).forEach(key => {
+        Object.keys(settings).forEach((key) => {
             currentSettings[key] = settings[key];
         });
         StorageService.saveSettings(currentSettings);
@@ -1275,7 +1390,7 @@ class Wallet extends EventEmitter {
         } else {
             return {
                 fromTime: 0,
-                duration: 0
+                duration: 0,
             };
         }
     }
@@ -1283,7 +1398,10 @@ class Wallet extends EventEmitter {
     checkAutoSign() {
         const autoSign = this.getAutoSignSettings();
         let nowTime = Date.now();
-        return (autoSign.fromTime <= nowTime && nowTime < (autoSign.fromTime + autoSign.duration));
+        return (
+            autoSign.fromTime <= nowTime &&
+            nowTime < autoSign.fromTime + autoSign.duration
+        );
     }
 
     addToRecentRecipients(address) {
@@ -1305,7 +1423,7 @@ class Wallet extends EventEmitter {
 
     clearRecentRecipients() {
         StorageService.clearRecentRecipients();
-        return true; 
+        return true;
     }
 
     setLanguage(language) {
@@ -1330,20 +1448,20 @@ class Wallet extends EventEmitter {
     getAccountDetails(accountId) {
         logger.info('Get account details of', accountId);
 
-        if(!accountId) {
+        if (!accountId) {
             return {
                 type: null,
                 name: null,
-                address: null
+                address: null,
             };
         }
 
-        let { type, name, address } = this.accounts[ accountId ];
+        let { type, name, address } = this.accounts[accountId];
         address = this.getChainAddress(address);
         return {
             type,
             name,
-            address
+            address,
         };
     }
 
@@ -1356,7 +1474,9 @@ class Wallet extends EventEmitter {
     }
 
     getSelectedAccountAddress() {
-        return this.getChainAddress(this.accounts[this.selectedAccount].address);
+        return this.getChainAddress(
+            this.accounts[this.selectedAccount].address
+        );
     }
 
     deleteAccount(accountId) {
@@ -1365,26 +1485,28 @@ class Wallet extends EventEmitter {
         if (!(accountId in this.accounts)) {
             return false;
         }
-        delete this.accounts[ accountId ];
+        delete this.accounts[accountId];
         StorageService.deleteAccount(accountId);
 
         this.emit('setAccounts', this.getAccounts());
 
-        if(!Object.keys(this.accounts).length) {
+        if (!Object.keys(this.accounts).length) {
             this.selectAccount(false);
             this._setState(APP_STATE.UNLOCKED);
             return true;
         }
 
         if (accountId === this.selectedAccount) {
-            this.selectAccount(Object.keys(this.accounts)[ 0 ]);
+            this.selectAccount(Object.keys(this.accounts)[0]);
         }
         return true;
     }
 
     async signMessage(message) {
         try {
-            let result = await this.accounts[this.selectedAccount].signMessage(message);
+            let result = await this.accounts[this.selectedAccount].signMessage(
+                message
+            );
             return result;
         } catch (err) {
             ErrorHandler.throwError({ id: ERRORS.INVALID_PARAMS, data: err });
@@ -1413,12 +1535,15 @@ class Wallet extends EventEmitter {
         this.checkTransactionDefaults(transaction);
         if (transaction.nonce === undefined) {
             let nonce = await NodeService.getTransactionCount(
-                                this.getSelectedAccountAddress());
+                this.getSelectedAccountAddress()
+            );
             transaction.nonce = (nonce + 1).toString();
         }
 
         try {
-            let signedTx = await this.accounts[this.selectedAccount].signTransaction(transaction);
+            let signedTx = await this.accounts[
+                this.selectedAccount
+            ].signTransaction(transaction);
             return signedTx;
         } catch (err) {
             ErrorHandler.throwError({ id: ERRORS.INVALID_PARAMS, data: err });
@@ -1450,16 +1575,21 @@ class Wallet extends EventEmitter {
                     type: 'standard',
                     contract: tokenAddress,
                     method: 'Transfer(types.Address,bn.Number)',
-                    params: [ to, val ]
-                }
-            ]
+                    params: [to, val],
+                },
+            ],
         };
 
         return tx;
     }
 
     async transfer({ token, to, value, note, history }) {
-        let tx = await this.getTransactionForTransfer({ token, to, value, note });
+        let tx = await this.getTransactionForTransfer({
+            token,
+            to,
+            value,
+            note,
+        });
         if (history) {
             this.addToRecentRecipients(to);
         }
@@ -1469,30 +1599,29 @@ class Wallet extends EventEmitter {
     }
 
     exportAccount() {
-        const {
-            privateKey
-        } = this.accounts[this.selectedAccount];
+        const { privateKey } = this.accounts[this.selectedAccount];
 
         return {
-            privateKey
+            privateKey,
         };
     }
 
     exportMnemonic() {
         return {
             mnemonic: StorageService.getMnemonic(),
-            accountIndex: StorageService.getAccountIndex()
+            accountIndex: StorageService.getAccountIndex(),
         };
     }
 
     exportJsonWallet() {
         let password = StorageService.password;
         try {
-            return this.accounts[this.selectedAccount].exportJsonWallet(password);
+            return this.accounts[this.selectedAccount].exportJsonWallet(
+                password
+            );
         } catch (err) {
             ErrorHandler.throwError({ id: ERRORS.INTERNEL_ERROR, data: err });
         }
     }
-
 }
 export default Wallet;

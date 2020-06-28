@@ -51,10 +51,8 @@ export default {
             if (!id) return Promise.reject('No network selected');
 
             try {
-                // console.log('1 id:', id);
                 let chains = await PopupAPI.getChainsOfNetwork(id),
                     networks = Utils.duplicate(this.networks);
-                // console.log('2 chains:', chains, this.activeNetwork);
                 for (const key in networks) {
                     let value = networks[key];
                     if (key === id) {
