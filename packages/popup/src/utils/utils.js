@@ -42,7 +42,7 @@ function getFirstValue(data) {
 
 function getNetworkMode() {
     let mode = Number(process.env.VUE_APP_NETWORK_MODE);
-    return isNaN(mode) ? 1 : mode;
+    return isNaN(mode) ? 2 : mode;
 }
 
 const Utils = {
