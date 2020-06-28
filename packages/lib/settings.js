@@ -19,7 +19,7 @@ export const ENABLED_ASSETS = {
     }
 };
 
-export const FIATRATE_UPDATE_INTERVEL = 300;
+export const FIATRATE_UPDATE_INTERVAL = 300; // secs
 
 export const PUBLIC_NETWORKS = {
     'bcb': {
