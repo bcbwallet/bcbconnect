@@ -40,11 +40,17 @@ function getFirstValue(data) {
     return firstValue;
 }
 
+function getNetworkMode() {
+    let mode = Number(process.env.VUE_APP_NETWORK_MODE);
+    return isNaN(mode) ? 1 : mode;
+}
+
 const Utils = {
     duplicate,
     getAllKeys,
     getFirstKey,
-    getFirstValue
+    getFirstValue,
+    getNetworkMode,
 };
 
 export default Utils;

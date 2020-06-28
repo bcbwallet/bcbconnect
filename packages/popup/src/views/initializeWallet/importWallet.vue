@@ -157,7 +157,7 @@ export default {
       langArr: false,
 
       isNetworkShow: false, // 是否显示网络树形结构组件
-      networkMode: Number(process.env.VUE_APP_NETWORK_MODE), // 网络模式：1展示网络列表；2展示网络列表及链列表
+      networkMode: Utils.getNetworkMode(), // 网络模式：1展示网络列表；2展示网络列表及链列表
       selectedNetwork: null // 已选择网络（{network: string, chain: string}）
     };
   },

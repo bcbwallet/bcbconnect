@@ -418,6 +418,7 @@ import {
 } from 'mint-ui';
 import VueClipboard from 'vue-clipboard2';
 import NetworkTree from '../../components/network-tree';
+import Utils from '../../utils/utils';
 
 Vue.use(VueClipboard);
 Vue.use(InfiniteScroll);
@@ -476,7 +477,7 @@ export default {
 
             // 新需求补充：网络设置功能
             isNetworkShow: false, // 是否显示网络树形结构组件
-            networkMode: Number(process.env.VUE_APP_NETWORK_MODE), // 网络模式：1展示网络列表；2展示网络列表及链列表
+            networkMode: Utils.getNetworkMode(), // 网络模式：1展示网络列表；2展示网络列表及链列表
             selectedNetwork: null // 已选择网络（{network: string, chain: string}）
         };
     },

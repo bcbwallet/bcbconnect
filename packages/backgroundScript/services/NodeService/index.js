@@ -323,6 +323,7 @@ const NodeService = {
         }
 
         await this._updateNodes().catch(err => {
+            logger.info(`_updateNodes err: ${err}`);
             if (chain == this.getMainChainId(this.network)) {
                 return this.fallbackToDefaultNodes();
             }
