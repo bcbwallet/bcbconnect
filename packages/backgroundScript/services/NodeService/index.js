@@ -602,11 +602,11 @@ const NodeService = {
             chainId: result.genesis.chain_id,
             token: result.genesis.app_state.token
         };
-        let mainUrls;
         if (result.genesis.app_state.mainChain) {
-            mainUrls = result.genesis.app_state.mainChain.openUrls;
-            nodeInfo.mainUrls = mainUrls;
             nodeInfo.isSideChain = true;
+            let { network } = this._splitChainId(result.genesis.chain_id);
+            let mainUrls = await this.getNodeUrls(nodeUrl, network);
+            nodeInfo.mainUrls = mainUrls;
         }
         // this._saveNodeCache('nodeInfo', nodeInfo);
         logger.info('Node info:', nodeInfo);
