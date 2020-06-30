@@ -56,7 +56,14 @@ export const PROVIDER_NETWORKS = {
         default: true,
         url: 'https://titanwallet.bcbchain.io',
         token: 'BCBT'
-    }
+    },
+    'devtest': {
+        chainId: 'devtest',
+        coinType: '0x1000',
+        default: true,
+        url: 'https://dwallet.bcbchain.io',
+        token: 'DEVT'
+    },
 };
 
 export const PROVIDER_APP_ID = '100';
