@@ -296,9 +296,10 @@ const NodeService = {
         if (nodeInfo.isSideChain) {
             url = nodeInfo.mainUrls[0];
         }
-        if (this.networks && this.networks.hasOwnProperty(network)) {
-            ErrorHandler.throwError(ERRORS.NETWORK_EXISTS);
-        }
+        // Allow override, server ip/domain may change. In this case users must re-add network
+        // if (this.networks && this.networks.hasOwnProperty(network)) {
+        //     ErrorHandler.throwError(ERRORS.NETWORK_EXISTS);
+        // }
         this.networks[network] = { name, urls: [ url ] };
 
         this.saveNetworks();
