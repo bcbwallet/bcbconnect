@@ -1,16 +1,16 @@
-.. _header-n4520:
+.. _header-n6899:
 
 bcbWeb
 ======
 
 This module provides web API of BCB Wallet Extension。
 
-.. _header-n4523:
+.. _header-n6902:
 
 Types
 -----
 
-.. _header-n4524:
+.. _header-n6903:
 
 Account
 ~~~~~~~
@@ -22,7 +22,7 @@ name     string null    Account name
 address  string null    Account address
 ======== ====== ======= ===============
 
-.. _header-n4541:
+.. _header-n6920:
 
 Chain
 ~~~~~
@@ -34,52 +34,69 @@ network  string null    Network
 chain    string null    Chain
 ======== ====== ======= ===========
 
-.. _header-n4558:
+.. _header-n6937:
 
 ContractCall
 ~~~~~~~~~~~~
 
-======== ========= ================
-Property Type      Description
-======== ========= ================
-type     string    Contract type
-contract string    Contract address
-method   string    Method prototype
-params   object [] Params
-======== ========= ================
+======== ========= ======== ======== ================
+Property Type      Required default  Description
+======== ========= ======== ======== ================
+type     string    no       standard Contract type
+contract string    yes               Contract address
+method   string    no                Method prototype
+params   object [] yes               Params
+======== ========= ======== ======== ================
 
--  Contract Type
+*If it is a new contract, ``method`` shall not be provided. In this case
+the transaction is to publish the contract.*
 
-======== =============================================
+-  **type**
+
+======== ========================
 type    
-======== =============================================
-standard Standard golang contract, this is the default
+======== ========================
+standard Standard golang contract
 bvm      BVM solidity contract
-======== =============================================
+======== ========================
 
--  Method Prototype
+-  **method**
 
-   -  standard
+   -  standard method prototype
 
    .. code:: 
 
-      func FuncName(ParamType1, ParamType2...)
+      func FuncName(paramName paramType...)
 
-   Golang syntax.
+   Golang syntax. ``func`` and ``paramName`` is optional.
 
-   -  bvm
+   Examples
 
-   Same as solidity.
+   .. code:: 
 
--  Params
+      func Transfer(to types.Address, value bn.Number)
+
+      Transfer(to types.Address, value bn.Number)
+
+      Transfer(types.Address,bn.Number)
+
+   All of these will be converted to
+   ``Transfer(types.Address,bn.Number)`` internally to compute function
+   signature.
+
+   -  bvm method prototype
+
+   Same as Ethereum solidity.
+
+-  **params**
 
 .. code:: 
 
-   [ arg1, arg2... ]
+   [ args... ]
 
-ParamType1 is encoded to arg1，ParamType2 is encoded to arg2...
+Argument list.
 
--  Encoding
+Param encoding
 
 ============= ====== ====================================================================
 Param Type    JSON   Example
@@ -94,29 +111,29 @@ bool          string "true", "false"
 []            []     []string: ["a", "b", "c"], []int: ["1", "2", "3"]
 ============= ====== ====================================================================
 
-.. _header-n4649:
+.. _header-n7041:
 
 Transaction
 ~~~~~~~~~~~
 
-======== =================================== ==================================================================
-Property Type                                Description
-======== =================================== ==================================================================
-network  string                              **Optional**. Network, defaults to selectedChain.network
-chain    string                              **Optional**. Chain, defaults to selectedChain.chain
-version  number                              **Optional**. Transaction format version, defaults to 2
-nonce    string                              **Optional**. Nonce, if not provided, query from network
-note     string                              Trasaction note, this will be packed to transaction
-gasLimit string                              Limitation of gas used
-calls    `ContractCall <#header-n4558>`__ [] Contract call struct. Temporarily at most 2 calls per transaction.
-======== =================================== ==================================================================
+======== =================================== ======== ===================== ==================================================================
+Property Type                                Required default               Description
+======== =================================== ======== ===================== ==================================================================
+network  string                              no       selectedChain.network Network
+chain    string                              no       selectedChain.chain   Chain
+version  number                              no       2                     Transaction format version
+nonce    string                              no                             Nonce, if not provided, query from network
+note     string                              no       ""                    Trasaction note, this will be packed to transaction
+gasLimit string                              yes                            Limitation of gas used
+calls    `ContractCall <#header-n6937>`__ [] yes                            Contract call struct. Temporarily at most 2 calls per transaction.
+======== =================================== ======== ===================== ==================================================================
 
-.. _header-n4683:
+.. _header-n7091:
 
 Properties
 ----------
 
-.. _header-n4684:
+.. _header-n7092:
 
 version
 ~~~~~~~
@@ -127,7 +144,7 @@ string ``window.bcbWeb.version``
 
    "1.8.0"
 
-.. _header-n4687:
+.. _header-n7095:
 
 ready
 ~~~~~
@@ -139,12 +156,12 @@ boolean ``window.bcbWeb.ready``
    true  // User logged in.
    false // User hasn't logged in or hasn't created an account.
 
-.. _header-n4690:
+.. _header-n7098:
 
 selectedAccount
 ~~~~~~~~~~~~~~~
 
-`Account <#header-n4524>`__ ``window.bcbWeb.selectedAccount``
+`Account <#header-n6903>`__ ``window.bcbWeb.selectedAccount``
 
 .. code:: javascript
 
@@ -153,18 +170,18 @@ selectedAccount
        address: "bcbNXYvZczb7Z1EKTEBPu9Qfyk3dfL1FrH9q",
    }
 
-.. _header-n4693:
+.. _header-n7101:
 
 selectedChain
 ~~~~~~~~~~~~~
 
-`Chain <#header-n4541>`__ ``window.bcbWeb.selectedChain``
+`Chain <#header-n6920>`__ ``window.bcbWeb.selectedChain``
 
 .. code:: javascript
 
    { network: "bcb", chain: "bcb" }
 
-.. _header-n4696:
+.. _header-n7104:
 
 Methods
 -------
@@ -200,7 +217,7 @@ Take ``getBalance`` as an example:
        console.error(err);
    })
 
-.. _header-n4709:
+.. _header-n7117:
 
 onStateChanged
 ~~~~~~~~~~~~~~
@@ -225,7 +242,7 @@ function. Parameters:
 
 -  ``ready``
 
-   boolean. Same as `ready <#header-n4687>`__.
+   boolean. Same as `ready <#header-n7095>`__.
 
 **Return value**
 
@@ -243,7 +260,7 @@ None.
        }
    })
 
-.. _header-n4726:
+.. _header-n7134:
 
 onAccountChanged
 ~~~~~~~~~~~~~~~~
@@ -268,7 +285,7 @@ function. Parameters:
 
 -  ``account``
 
-   `Account <#header-n4524>`__.
+   `Account <#header-n6903>`__.
 
 **Return value**
 
@@ -293,7 +310,7 @@ None.
    	}
    })
 
-.. _header-n4743:
+.. _header-n7151:
 
 onChainChanged
 ~~~~~~~~~~~~~~
@@ -318,7 +335,7 @@ function. Parameters:
 
 -  ``chain``
 
-   `Chain <#header-n4541>`__.
+   `Chain <#header-n6920>`__.
 
 **Return value**
 
@@ -333,7 +350,7 @@ None.
        // { network: 'bcb', chain: 'bcb' }
    })
 
-.. _header-n4760:
+.. _header-n7168:
 
 requestLogin
 ~~~~~~~~~~~~
@@ -379,10 +396,10 @@ None.
        console.error(err);
    })
 
-Read `selectedAccount <#header-n4690>`__ or use a listener
-`onAccountChanged <#header-n4726>`__ to get wallet account.
+Read `selectedAccount <#header-n7098>`__ or use a listener
+`onAccountChanged <#header-n7134>`__ to get wallet account.
 
-.. _header-n4780:
+.. _header-n7188:
 
 getBalance
 ~~~~~~~~~~
@@ -428,7 +445,7 @@ None.
        console.error(err);
    })
 
-.. _header-n4799:
+.. _header-n7207:
 
 getBalanceBySymbol
 ~~~~~~~~~~~~~~~~~~
@@ -475,7 +492,7 @@ None.
        console.error(err);
    })
 
-.. _header-n4818:
+.. _header-n7226:
 
 signMessage
 ~~~~~~~~~~~
@@ -534,7 +551,7 @@ None.
        console.error(err);
    })
 
-.. _header-n4850:
+.. _header-n7258:
 
 signTransaction
 ~~~~~~~~~~~~~~~
@@ -555,7 +572,7 @@ User has logged in.
 
 ``transaction``
 
-`Transaction <#header-n4649>`__.
+`Transaction <#header-n7041>`__.
 
 ``callback`` \| Optional
 
@@ -574,9 +591,9 @@ None.
 .. code:: javascript
 
    let transaction = {
-       // Optional, defaults to bcbWeb.selectedChain.network
+       // Optional, defaults to selectedChain.network
        "network": "bcb",
-       // Optional, defaults to bcbWeb.selectedChain.chain
+       // Optional, defaults to selectedChain.chain
        "chain": "bcb",
        // Optional, defaults to 2
        "version": 2,
@@ -587,17 +604,13 @@ None.
    
        "gasLimit": "25000",
        "calls": [{
-           // Optional, defaults to standard
            "type": "standard",
            "contract": "bcbLVgb3odTfKC9Y9GeFnNWL9wmR4pwWiqwe",
            "method": "func Transfer(to types.Address, value bn.Number)",
-           // "Transfer(to types.Address, value bn.Number)",
-           // "Transfer(types.Address,bn.Number)" also works,
-           // all will be converted to "Transfer(types.Address,bn.Number)" 
-           // internally to compute function signature.
            "params": ["bcbJjYFgmG52r2vnVcaSoBKKoUTxmMedjm8p", "1000000"]
        },
        {
+           // type defaults to standard
            "contract": "bcbCsRXXMGkUJ8wRnrBUD7mQsMST4d53JRKJ",
            "method": "func Transfer(to types.Address, value bn.Number)",
            "params": ["bcbJjYFgmG52r2vnVcaSoBKKoUTxmMedjm8p", "2000000"]
@@ -614,31 +627,28 @@ None.
 
 .. code:: javascript
 
-   let transaction = {
-       // "network": "bcb",
-       // "chain": "bcb",
-       // "version": 2,
-       // "nonce": "100",
-       "note": "bvmcall",
-       "gasLimit": "25000",
-       "calls": [{
-           "type": "bvm",
-           "contract": "bcbLVgb3odTfKC9Y9GeFnNWL9wmR4pwWiqwe",
-           "method": "function Buy(uint code) external payable",
-           // "Buy(uint code)", "Buy(uint)" also works,
-           // all will be converted to "Buy(uint256)" 
-           // internally to compute function signature.
-           "params": ["1"]
-       }]
-   };
-
-   window.bcbWeb.signTransaction(transaction).then(signedTransaction => {
-       console.log(signedTransaction);
-   }).catch(err => {
-       console.error(err);
+   let transaction = {
+       // "network": "bcb",
+       // "chain": "bcb",
+       // "version": 2,
+       // "nonce": "100",
+       "note": "bvmcall",
+       "gasLimit": "25000",
+       "calls": [{
+           "type": "bvm",
+           "contract": "bcbLVgb3odTfKC9Y9GeFnNWL9wmR4pwWiqwe",
+           "method": "function Buy(uint code) external payable",
+           "params": ["1"]
+       }]
+   };
+   
+   window.bcbWeb.signTransaction(transaction).then(signedTransaction => {
+       console.log(signedTransaction);
+   }).catch(err => {
+       console.error(err);
    })
 
-.. _header-n4871:
+.. _header-n7279:
 
 broadcastTransaction
 ~~~~~~~~~~~~~~~~~~~~
@@ -660,7 +670,7 @@ User has logged in.
 ``signedTransaction``
 
 string. Signed transaction, result of
-`signTransaction <#header-n4850>`__.
+`signTransaction <#header-n7258>`__.
 
 ``callback`` \| Optional
 
@@ -689,12 +699,12 @@ None.
 **Notes**
 
 -  The node to broadcast transaction is
-   `selectedChain <#header-n4693>`__.
+   `selectedChain <#header-n7101>`__.
 
 -  If ``selectedChain`` is changed after ``signTransaction``,
    transaction will be rejected by network.
 
-.. _header-n4896:
+.. _header-n7304:
 
 transferToken
 ~~~~~~~~~~~~~
@@ -751,15 +761,15 @@ None.
        console.error(err);
    })
 
-.. _header-n4921:
+.. _header-n7329:
 
 sendTransaction
 ~~~~~~~~~~~~~~~
 
 Build, sign and broadcast transaction.
 
-Same as `signTransaction <#header-n4850>`__ and then
-`broadcastTransaction <#header-n4871>`__\ 。
+Same as `signTransaction <#header-n7258>`__ and then
+`broadcastTransaction <#header-n7279>`__\ 。
 
 **Parameters**
 
@@ -775,7 +785,7 @@ User has logged in.
 
 ``transaction``
 
-`Transaction <#header-n4649>`__.
+`Transaction <#header-n7041>`__.
 
 ``callback`` \| Optional
 
@@ -791,7 +801,7 @@ None.
 
 **Examples**
 
-See `signTransaction <#header-n4850>`__ for all transaction properties.
+See `signTransaction <#header-n7258>`__ for all transaction properties.
 
 .. code:: javascript
 
@@ -812,12 +822,12 @@ See `signTransaction <#header-n4850>`__ for all transaction properties.
        console.error(err);
    })
 
-.. _header-n4942:
+.. _header-n7350:
 
 bcbWeb.utils
 ------------
 
-.. _header-n4943:
+.. _header-n7351:
 
 ethToBcbAddress
 ~~~~~~~~~~~~~~~
@@ -840,8 +850,8 @@ string. Ethereum address.
 
 ``chainOpts`` \| Optional
 
-`Chain <#header-n4541>`__. Chain options, defaults to
-`selectedChain <#header-n4693>`__.
+`Chain <#header-n6920>`__. Chain options, defaults to
+`selectedChain <#header-n7101>`__.
 
 **Return value**
 
@@ -862,7 +872,7 @@ BCB address.
    window.bcbWeb.utils.ethToBcbAddress("0xec21c4c98e76cd193f8dae1c2983d3697544d01e", {network: 'bcb', chain: 'xx'})
    // "bcb[xx]NXYvZczb7Z1EKTEBPu9Qfyk3dfL1FrH9q"
 
-.. _header-n4957:
+.. _header-n7365:
 
 bcbToEthAddress
 ~~~~~~~~~~~~~~~
@@ -885,8 +895,8 @@ string. BCB address.
 
 ``chainOpts`` \| Optional
 
-`Chain <#header-n4541>`__. Chain options, defaults to
-`selectedChain <#header-n4693>`__.
+`Chain <#header-n6920>`__. Chain options, defaults to
+`selectedChain <#header-n7101>`__.
 
 **Return value**
 

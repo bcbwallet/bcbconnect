@@ -20,41 +20,58 @@ This module provides web API of BCB Wallet Extension。
 
 ### ContractCall
 
-| Property     | Type      | Description         |
-| -------- | --------- | ------------ |
-| type     | string    | Contract type     |
-| contract | string    | Contract address     |
-| method   | string    | Method prototype |
-| params   | object [] | Params |
+| Property     | Type      | Required  | default  | Description |
+| -------- | --------- | --------- | --------- | ------------ |
+| type     | string    | no        | standard  | Contract type     |
+| contract | string    | yes       |           | Contract address     |
+| method   | string    | no        |           | Method prototype |
+| params   | object [] | yes       |           | Params |
 
-- Contract Type
+*If  it is a new contract, `method` shall not be provided. In this case the transaction is to publish the contract.*
 
-| type     |                         |
+- **type**
+
+| type |                         |
 | -------- | ----------------------- |
-| standard | Standard golang contract, this is the default  |
+| standard | Standard golang contract |
 | bvm      | BVM solidity contract                 |
 
-- Method Prototype
+- **method**
 
-  - standard
+  - standard method prototype
 
   ```
-  func FuncName(ParamType1, ParamType2...)
+  func FuncName(paramName paramType...)
   ```
-  Golang syntax.
+  
+  Golang syntax. `func` and `paramName` is optional.
+  
+  Examples
+  
+  ```
+  func Transfer(to types.Address, value bn.Number)
+  
+  Transfer(to types.Address, value bn.Number)
+  
+  Transfer(types.Address,bn.Number)
+  ```
+  
+  All of these will be converted to `Transfer(types.Address,bn.Number)` 
+  internally to compute function signature.
+  
 
-  - bvm
+  - bvm method prototype
 
-  Same as solidity.
+  Same as Ethereum solidity.
 
-- Params
+- **params**
 
 ```
-[ arg1, arg2... ]
+[ args... ]
 ```
-ParamType1 is encoded to arg1，ParamType2 is encoded to arg2...
+Argument list.
 
-- Encoding
+Param encoding
 
 | Param Type    | JSON   | Example                                  |
 | ------------- | ------ | ---------------------------------------- |
@@ -69,15 +86,15 @@ ParamType1 is encoded to arg1，ParamType2 is encoded to arg2...
 
 ### Transaction
 
-| Property     | Type                | Description                                          |
-| -------| ------------------| --------------------------------------------|
-| network | string | **Optional**. Network, defaults to selectedChain.network |
-| chain | string | **Optional**. Chain, defaults to selectedChain.chain |
-| version  | number            | **Optional**. Transaction format version, defaults to 2                 |
-| nonce    | string            | **Optional**. Nonce, if not provided, query from network |
-| note | string | Trasaction note, this will be packed to transaction |
-| gasLimit | string            | Limitation of gas used               |
-| calls    | [ContractCall](#ContractCall) [] | Contract call struct. Temporarily at most 2 calls per transaction. |
+| Property     | Type      | Required  | default  | Description |
+| -------- | --------- | --------- | --------- | ------------ |
+| network | string | no     | selectedChain.network | Network |
+| chain | string | no     | selectedChain.chain | Chain |
+| version  | number | no     | 2     | Transaction format version |
+| nonce    | string | no     |       | Nonce, if not provided, query from network |
+| note | string | no     | "" |Trasaction note, this will be packed to transaction|
+| gasLimit | string            | yes     |                |Limitation of gas used|
+| calls    | [ContractCall](#ContractCall) [] | yes     |         |Contract call struct. Temporarily at most 2 calls per transaction.|
 
 ## Properties
 
@@ -494,9 +511,9 @@ None.
 
 ```javascript
 let transaction = {
-    // Optional, defaults to bcbWeb.selectedChain.network
+    // Optional, defaults to selectedChain.network
     "network": "bcb",
-    // Optional, defaults to bcbWeb.selectedChain.chain
+    // Optional, defaults to selectedChain.chain
     "chain": "bcb",
     // Optional, defaults to 2
     "version": 2,
@@ -507,17 +524,13 @@ let transaction = {
 
     "gasLimit": "25000",
     "calls": [{
-        // Optional, defaults to standard
         "type": "standard",
         "contract": "bcbLVgb3odTfKC9Y9GeFnNWL9wmR4pwWiqwe",
         "method": "func Transfer(to types.Address, value bn.Number)",
-        // "Transfer(to types.Address, value bn.Number)",
-        // "Transfer(types.Address,bn.Number)" also works,
-        // all will be converted to "Transfer(types.Address,bn.Number)" 
-        // internally to compute function signature.
         "params": ["bcbJjYFgmG52r2vnVcaSoBKKoUTxmMedjm8p", "1000000"]
     },
     {
+        // type defaults to standard
         "contract": "bcbCsRXXMGkUJ8wRnrBUD7mQsMST4d53JRKJ",
         "method": "func Transfer(to types.Address, value bn.Number)",
         "params": ["bcbJjYFgmG52r2vnVcaSoBKKoUTxmMedjm8p", "2000000"]
@@ -545,9 +558,6 @@ let transaction = {
         "type": "bvm",
         "contract": "bcbLVgb3odTfKC9Y9GeFnNWL9wmR4pwWiqwe",
         "method": "function Buy(uint code) external payable",
-        // "Buy(uint code)", "Buy(uint)" also works,
-        // all will be converted to "Buy(uint256)" 
-        // internally to compute function signature.
         "params": ["1"]
     }]
 };
