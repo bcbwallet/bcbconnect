@@ -1,16 +1,16 @@
-.. _header-n480:
+.. _header-n0:
 
 bcbWeb
 ======
 
 This module provides web API of BCB Wallet Extension。
 
-.. _header-n483:
+.. _header-n3:
 
 Types
 -----
 
-.. _header-n484:
+.. _header-n4:
 
 Account
 ~~~~~~~
@@ -22,7 +22,7 @@ name     string null    Account name
 address  string null    Account address
 ======== ====== ======= ===============
 
-.. _header-n501:
+.. _header-n21:
 
 Chain
 ~~~~~
@@ -34,7 +34,7 @@ network  string null    Network
 chain    string null    Chain
 ======== ====== ======= ===========
 
-.. _header-n518:
+.. _header-n38:
 
 ContractCall
 ~~~~~~~~~~~~
@@ -111,29 +111,29 @@ bool          string "true", "false"
 []            []     []string: ["a", "b", "c"], []int: ["1", "2", "3"]
 ============= ====== ====================================================================
 
-.. _header-n621:
+.. _header-n141:
 
 Transaction
 ~~~~~~~~~~~
 
-======== ================================== ======== ===================== ==================================================================
-Property Type                               Required default               Description
-======== ================================== ======== ===================== ==================================================================
-network  string                             no       selectedChain.network Network
-chain    string                             no       selectedChain.chain   Chain
-version  number                             no       2                     Transaction format version
-nonce    string                             no                             Nonce, if not provided, query from network
-note     string                             no       ""                    Trasaction note, this will be packed to transaction
-gasLimit string                             yes                            Limitation of gas used
-calls    `ContractCall <#header-n518>`__ [] yes                            Contract call struct. Temporarily at most 2 calls per transaction.
-======== ================================== ======== ===================== ==================================================================
+======== ================================= ======== ===================== ==================================================================
+Property Type                              Required default               Description
+======== ================================= ======== ===================== ==================================================================
+network  string                            no       selectedChain.network Network
+chain    string                            no       selectedChain.chain   Chain
+version  number                            no       2                     Transaction format version
+nonce    string                            no                             Nonce, if not provided, query from network
+note     string                            no       ""                    Trasaction note, this will be packed to transaction
+gasLimit string                            yes                            Limitation of gas used
+calls    `ContractCall <#header-n38>`__ [] yes                            Contract call struct. Temporarily at most 2 calls per transaction.
+======== ================================= ======== ===================== ==================================================================
 
-.. _header-n671:
+.. _header-n191:
 
 Properties
 ----------
 
-.. _header-n672:
+.. _header-n192:
 
 version
 ~~~~~~~
@@ -142,9 +142,20 @@ string ``window.bcbWeb.version``
 
 .. code:: javascript
 
-   "2.8.0" // three digits x.x.x
+   "2.8.0" // Three digits x.x.x
 
-.. _header-n675:
+.. _header-n195:
+
+language
+~~~~~~~~
+
+string ``window.bcbWeb.language``
+
+.. code:: javascript
+
+   "en-US" // User set locale.
+
+.. _header-n198:
 
 ready
 ~~~~~
@@ -156,12 +167,12 @@ boolean ``window.bcbWeb.ready``
    true  // User logged in.
    false // User hasn't logged in or hasn't created an account.
 
-.. _header-n678:
+.. _header-n201:
 
 selectedAccount
 ~~~~~~~~~~~~~~~
 
-`Account <#header-n484>`__ ``window.bcbWeb.selectedAccount``
+`Account <#header-n4>`__ ``window.bcbWeb.selectedAccount``
 
 .. code:: javascript
 
@@ -170,18 +181,18 @@ selectedAccount
        address: "bcbNXYvZczb7Z1EKTEBPu9Qfyk3dfL1FrH9q",
    }
 
-.. _header-n681:
+.. _header-n204:
 
 selectedChain
 ~~~~~~~~~~~~~
 
-`Chain <#header-n501>`__ ``window.bcbWeb.selectedChain``
+`Chain <#header-n21>`__ ``window.bcbWeb.selectedChain``
 
 .. code:: javascript
 
    { network: "bcb", chain: "bcb" }
 
-.. _header-n684:
+.. _header-n207:
 
 Methods
 -------
@@ -217,7 +228,7 @@ Take ``getBalance`` as an example:
        console.error(err);
    })
 
-.. _header-n697:
+.. _header-n220:
 
 onStateChanged
 ~~~~~~~~~~~~~~
@@ -242,7 +253,7 @@ function. Parameters:
 
 -  ``ready``
 
-   boolean. Same as `ready <#header-n675>`__.
+   boolean. Same as `ready <#header-n198>`__.
 
 **Return value**
 
@@ -260,7 +271,7 @@ None.
        }
    })
 
-.. _header-n714:
+.. _header-n237:
 
 onAccountChanged
 ~~~~~~~~~~~~~~~~
@@ -285,7 +296,7 @@ function. Parameters:
 
 -  ``account``
 
-   `Account <#header-n484>`__.
+   `Account <#header-n4>`__.
 
 **Return value**
 
@@ -313,7 +324,7 @@ None.
        }
    })
 
-.. _header-n731:
+.. _header-n254:
 
 onChainChanged
 ~~~~~~~~~~~~~~
@@ -338,7 +349,7 @@ function. Parameters:
 
 -  ``chain``
 
-   `Chain <#header-n501>`__.
+   `Chain <#header-n21>`__.
 
 **Return value**
 
@@ -353,7 +364,7 @@ None.
        // { network: 'bcb', chain: 'bcb' }
    })
 
-.. _header-n748:
+.. _header-n271:
 
 requestLogin
 ~~~~~~~~~~~~
@@ -394,16 +405,16 @@ None.
 
 .. code:: javascript
 
-   window.bcbWeb.requestLogin().then(result => {
-       console.log(result);
-   }).catch(err => {
-       console.error(err);
+   window.bcbWeb.requestLogin().then(result => {
+       console.log(result);
+   }).catch(err => {
+       console.error(err);
    })
 
-Poll `selectedAccount <#header-n678>`__ or register
-`onAccountChanged <#header-n714>`__ listener to get current account.
+Poll `selectedAccount <#header-n201>`__ or register
+`onAccountChanged <#header-n237>`__ listener to get current account.
 
-.. _header-n768:
+.. _header-n291:
 
 getBalance
 ~~~~~~~~~~
@@ -422,9 +433,9 @@ User has logged in.
 
 **Parameters**
 
-``tokenAddress``
+``tokenAddress`` \| Optional
 
-string. Token address.
+string. Token address. If not provided, use current selected token.
 
 ``callback`` \| Optional
 
@@ -442,13 +453,19 @@ None.
 
 .. code:: javascript
 
+   window.bcbWeb.getBalance().then(balance => {
+       console.log(balance);
+   }).catch(err => {
+       console.error(err);
+   })
+
    window.bcbWeb.getBalance('bcbCsRXXMGkUJ8wRnrBUD7mQsMST4d53JRKJ').then(balance => {
        console.log(balance);
    }).catch(err => {
        console.error(err);
    })
 
-.. _header-n787:
+.. _header-n310:
 
 getBalanceBySymbol
 ~~~~~~~~~~~~~~~~~~
@@ -494,7 +511,7 @@ None.
        console.error(err);
    })
 
-.. _header-n806:
+.. _header-n329:
 
 signMessage
 ~~~~~~~~~~~
@@ -554,7 +571,7 @@ None.
        console.error(err);
    })
 
-.. _header-n838:
+.. _header-n361:
 
 signTransaction
 ~~~~~~~~~~~~~~~
@@ -575,7 +592,7 @@ User has logged in.
 
 ``transaction``
 
-`Transaction <#header-n621>`__.
+`Transaction <#header-n141>`__.
 
 ``callback`` \| Optional
 
@@ -650,7 +667,7 @@ None.
        console.error(err);
    })
 
-.. _header-n859:
+.. _header-n382:
 
 broadcastTransaction
 ~~~~~~~~~~~~~~~~~~~~
@@ -672,7 +689,7 @@ User has logged in.
 ``signedTransaction``
 
 string. Signed transaction, result of
-`signTransaction <#header-n838>`__.
+`signTransaction <#header-n361>`__.
 
 ``callback`` \| Optional
 
@@ -701,12 +718,12 @@ None.
 **Notes**
 
 -  The node to broadcast transaction is
-   `selectedChain <#header-n681>`__.
+   `selectedChain <#header-n204>`__.
 
 -  If ``selectedChain`` is changed after ``signTransaction``,
    transaction will be rejected by network.
 
-.. _header-n884:
+.. _header-n407:
 
 transferToken
 ~~~~~~~~~~~~~
@@ -763,15 +780,15 @@ None.
        console.error(err);
    })
 
-.. _header-n909:
+.. _header-n432:
 
 sendTransaction
 ~~~~~~~~~~~~~~~
 
 Build, sign and broadcast transaction.
 
-Same as `signTransaction <#header-n838>`__ and then
-`broadcastTransaction <#header-n859>`__\ 。
+Same as `signTransaction <#header-n361>`__ and then
+`broadcastTransaction <#header-n382>`__\ 。
 
 **Parameters**
 
@@ -787,7 +804,7 @@ User has logged in.
 
 ``transaction``
 
-`Transaction <#header-n621>`__.
+`Transaction <#header-n141>`__.
 
 ``callback`` \| Optional
 
@@ -803,7 +820,7 @@ None.
 
 **Examples**
 
-See `signTransaction <#header-n838>`__ for all transaction properties.
+See `signTransaction <#header-n361>`__ for all transaction properties.
 
 .. code:: javascript
 
@@ -824,12 +841,12 @@ See `signTransaction <#header-n838>`__ for all transaction properties.
        console.error(err);
    })
 
-.. _header-n930:
+.. _header-n453:
 
 bcbWeb.utils
 ------------
 
-.. _header-n931:
+.. _header-n454:
 
 ethToBcbAddress
 ~~~~~~~~~~~~~~~
@@ -852,8 +869,8 @@ string. Ethereum address.
 
 ``chainOpts`` \| Optional
 
-`Chain <#header-n501>`__. Chain options, defaults to
-`selectedChain <#header-n681>`__.
+`Chain <#header-n21>`__. Chain options, defaults to
+`selectedChain <#header-n204>`__.
 
 **Return value**
 
@@ -874,7 +891,7 @@ BCB address.
    window.bcbWeb.utils.ethToBcbAddress("0xec21c4c98e76cd193f8dae1c2983d3697544d01e", {network: 'bcb', chain: 'xx'})
    // "bcb[xx]NXYvZczb7Z1EKTEBPu9Qfyk3dfL1FrH9q"
 
-.. _header-n945:
+.. _header-n468:
 
 bcbToEthAddress
 ~~~~~~~~~~~~~~~
@@ -897,8 +914,8 @@ string. BCB address.
 
 ``chainOpts`` \| Optional
 
-`Chain <#header-n501>`__. Chain options, defaults to
-`selectedChain <#header-n681>`__.
+`Chain <#header-n21>`__. Chain options, defaults to
+`selectedChain <#header-n204>`__.
 
 **Return value**
 

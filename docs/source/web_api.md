@@ -102,7 +102,15 @@ Param encoding
 string    `window.bcbWeb.version`
 
 ```javascript
-"2.8.0" // three digits x.x.x
+"2.8.0" // Three digits x.x.x
+```
+
+### language
+
+string    `window.bcbWeb.language`
+
+```javascript
+"en-US" // User set locale.
 ```
 
 ### ready
@@ -353,9 +361,9 @@ getBalance(string tokenAddress, function callback)
 
 **Parameters**
 
-`tokenAddress`
+`tokenAddress` | Optional
 
-  string. Token address.
+  string. Token address. If not provided, use current selected token.
 
 `callback` | Optional
 
@@ -372,6 +380,12 @@ None.
 **Examples**
 
 ```javascript
+window.bcbWeb.getBalance().then(balance => {
+    console.log(balance);
+}).catch(err => {
+    console.error(err);
+})
+
 window.bcbWeb.getBalance('bcbCsRXXMGkUJ8wRnrBUD7mQsMST4d53JRKJ').then(balance => {
     console.log(balance);
 }).catch(err => {
