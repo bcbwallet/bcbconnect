@@ -372,8 +372,7 @@ None.
 **Examples**
 
 ```javascript
-window.bcbWeb.getBalance('bcbCsRXXMGkUJ8wRnrBUD7mQsMST4d53JRKJ')
-.then(balance => {
+window.bcbWeb.getBalance('bcbCsRXXMGkUJ8wRnrBUD7mQsMST4d53JRKJ').then(balance => {
     console.log(balance);
 }).catch(err => {
     console.error(err);
@@ -416,8 +415,7 @@ None.
 
 ```javascript
 // tokenSymbol insensitive
-window.bcbWeb.getBalanceBySymbol('DC')
-.then(balance => {
+window.bcbWeb.getBalanceBySymbol('DC').then(balance => {
     console.log(balance);
 }).catch(err => {
     console.error(err);
@@ -464,7 +462,8 @@ None.
 **Examples**
 
 ```javascript
-let message = '0x3ea2f1d0abf3fc66cf29eebb70cbd4e7fe762ef8a09bcc06c8edf641230afec0'window.bcbWeb.signMessage(message).then(result => {
+let message = '0x3ea2f1d0abf3fc66cf29eebb70cbd4e7fe762ef8a09bcc06c8edf641230afec0';
+window.bcbWeb.signMessage(message).then(result => {
     let {
         signature,
         pubkey
