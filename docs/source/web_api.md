@@ -43,11 +43,11 @@ This module provides web API of BCB Wallet Extension。
   ```
   func FuncName(paramName paramType...)
   ```
-  
+
   Golang syntax. `func` and `paramName` is optional.
-  
+
   Examples
-  
+
   ```
   func Transfer(to types.Address, value bn.Number)
   
@@ -55,10 +55,9 @@ This module provides web API of BCB Wallet Extension。
   
   Transfer(types.Address,bn.Number)
   ```
-  
+
   All of these will be converted to `Transfer(types.Address,bn.Number)` 
   internally to compute function signature.
-  
 
   - bvm method prototype
 
@@ -103,7 +102,7 @@ Param encoding
 string    `window.bcbWeb.version`
 
 ```javascript
-"1.8.0"
+"2.8.0" // three digits x.x.x
 ```
 
 ### ready
@@ -201,7 +200,7 @@ window.bcbWeb.onStateChanged(ready => {
     if (ready) {
         console.log('User has logged in.');
     } else {
-        console.log('User hasn't logged in of hasn't created an account.');
+        console.log('User hasn't logged in or hasn't created an account.');
     }
 })
 ```
@@ -238,18 +237,21 @@ None.
 
 ```javascript
 window.bcbWeb.onAccountChanged(account => {
-	if (account.address) {
-        console.log('User logged in.');
+    if (account.address) {
+        // User logged in.
+        console.log(account);
         // {
         //   name: 'acount01',
         //   address: 'bcbNXYvZczb7Z1EKTEBPu9Qfyk3dfL1FrH9q',
-    	// }
-        console.log('Name:', account.name, 'Address:', account.address);
-	} else {
-        // User has logged out.
-        // { name: null, address: null }
-        console.log('User logged out.');
-	}
+        // }
+    } else {
+        // User logged out.
+        console.log(account);
+        // {
+        //   name: null,
+        //   address: null
+        // }
+    }
 })
 ```
 
@@ -293,6 +295,7 @@ window.bcbWeb.onChainChanged(chain => {
 ### requestLogin
 
 Request user to log in.
+A window will pop up, depends on the current wallet state.
 
 **Conditions**
 
@@ -332,7 +335,7 @@ window.bcbWeb.requestLogin().then(result => {
 })
 ```
 
-Read [selectedAccount](#selectedAccount) or use a listener [onAccountChanged](#onAccountChanged) to get wallet account.
+Poll [selectedAccount](#selectedAccount) or register [onAccountChanged](#onAccountChanged) listener to get current account.
 
 ### getBalance
 
@@ -521,7 +524,6 @@ let transaction = {
     "nonce": "100",
     // Optional
     "note": "2transfers",
-
     "gasLimit": "25000",
     "calls": [{
         "type": "standard",
@@ -761,7 +763,7 @@ BCB address.
 
 ```javascript
 let address =
-	window.bcbWeb.utils.ethToBcbAddress("0xec21c4c98e76cd193f8dae1c2983d3697544d01e")
+  window.bcbWeb.utils.ethToBcbAddress("0xec21c4c98e76cd193f8dae1c2983d3697544d01e")
 console.log(address)
 // "bcbNXYvZczb7Z1EKTEBPu9Qfyk3dfL1FrH9q"
 
@@ -770,7 +772,6 @@ window.bcbWeb.utils.ethToBcbAddress("0xec21c4c98e76cd193f8dae1c2983d3697544d01e"
 
 window.bcbWeb.utils.ethToBcbAddress("0xec21c4c98e76cd193f8dae1c2983d3697544d01e", {network: 'bcb', chain: 'xx'})
 // "bcb[xx]NXYvZczb7Z1EKTEBPu9Qfyk3dfL1FrH9q"
-
 ```
 
 ### bcbToEthAddress
@@ -803,16 +804,14 @@ Ethereum address.
 
 ```javascript
 let ethAddress =
-	window.bcbWeb.utils.bcbToEthAddress("bcbNXYvZczb7Z1EKTEBPu9Qfyk3dfL1FrH9q");
+  window.bcbWeb.utils.bcbToEthAddress("bcbNXYvZczb7Z1EKTEBPu9Qfyk3dfL1FrH9q");
 console.log(ethAddress)
 // "0xec21c4c98e76cd193f8dae1c2983d3697544d01e"
-
 
 window.bcbWeb.utils.bcbToEthAddress("bcbNXYvZczb7Z1EKTEBPu9Qfyk3dfL1FrH9q", {network: 'bcb', chain: 'bcb'})
 // "0xec21c4c98e76cd193f8dae1c2983d3697544d01e"
 
 window.bcbWeb.utils.bcbToEthAddress("bcbNXYvZczb7Z1EKTEBPu9Qfyk3dfL1FrH9q", {network: 'bcb', chain: 'xx'})
 // Error: Chain id mismatch
-
 ```
 
