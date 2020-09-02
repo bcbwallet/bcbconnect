@@ -55,7 +55,7 @@ export const PROVIDER_NETWORKS = {
         coinType: '0x1003',
         default: true,
         url: 'https://titanwallet.bcbchain.io',
-        token: 'BCBT'
+        token: 'bcbt'
     },
     'devtest': {
         chainId: 'devtest',
